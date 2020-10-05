@@ -2,3 +2,5 @@
 on_production = 1  # 在产
 stop_production = -1  # 停产
 Delete = 0  # 逻辑删除
+
+a = ["传感器类型", "传感器型号", "状态"]
