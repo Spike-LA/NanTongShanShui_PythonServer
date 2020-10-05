@@ -89,5 +89,9 @@ class EquipmentSerializer(serializers.ModelSerializer):
                 equipment_instance.sensor_id = obj
                 equipment_instance.status = working
                 equipment_instance.save()
-
+        # 将淘汰的传感器状态设为不在设备上工作
+        for obj in sensor_list:
+            sensor_obj = EquipmentAndSensor.objects.filter(sensor_id=obj).first()
+            sensor_obj.status = not_working
+            sensor_obj.save()
         return instance
