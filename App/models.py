@@ -65,7 +65,7 @@ class EnterpriseAccount(models.Model):
     add_by = models.CharField(max_length=50, blank=True, null=True)
     mod_time = models.DateField(blank=True, null=True)
     mod_by = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -82,6 +82,7 @@ class Equipment(models.Model):
     equip_person = models.CharField(max_length=50)
     create_time = models.DateTimeField(auto_now_add=True)
     alert_time = models.DateTimeField(auto_now=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -156,6 +157,7 @@ class EquipmentScrap(models.Model):
     sign = models.CharField(max_length=50, blank=True, null=True)
     approval_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
+    area = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False

@@ -8,6 +8,7 @@ class EquipmentFilter(django_filters.FilterSet):
     equipment_code = django_filters.CharFilter(field_name="equipment_code", lookup_expr='exact')
     begin_date = django_filters.DateTimeFilter(field_name="alert_time", lookup_expr='gte')
     last_date = django_filters.DateTimeFilter(field_name="alert_time", lookup_expr='lte')
+    status = django_filters.CharFilter(field_name="status", lookup_expr='exact')
 
     class Meta:
 
