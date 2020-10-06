@@ -1,7 +1,7 @@
 # 主机
 on_production = 1  # 在产
-stop_production = -1  # 停产
-Delete = 0  # 逻辑删除
+stop_production = 0  # 停产
+Delete = -1  # 逻辑删除
 
 # 设备
 on_line = 0  # 在线
@@ -13,4 +13,4 @@ maintenance = 3  # 维护
 working = 1  # 传感器在设备工作
 not_working = -1  # 传感器不在设备上工作
 
-a = ["传感器类型", "传感器型号", "状态"]
+a = ["传感器类型", "传感器型号", "状态", "备注"]

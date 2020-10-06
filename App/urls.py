@@ -15,24 +15,28 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from App import views
+from App.views.client import ClientViewSet
+from App.views.contact_people import ContactPeopleViewSet
 from App.views.equipment import EquipmentViewSet
 from App.views.main_engine import MainEngineViewSet
+from App.views.pagination import PageView
 from App.views.sensor_model import SensorModelViewSet
 from App.views.sensor_type import SensorTypeViewSet
 
 router = DefaultRouter()
 
-
 router.register('main_engine', MainEngineViewSet)
 router.register('equipment', EquipmentViewSet)
 router.register('sensor_type', SensorTypeViewSet)
 router.register('sensor_model', SensorModelViewSet)
-
+router.register('client', ClientViewSet)
+router.register('contact_people', ContactPeopleViewSet)
 
 urlpatterns = [
-    path('typemodel/', views.type_model, name='type_model'),
+    path('typemodel/', views.type_model, name='type_model'),  # 连表路由
+    path('page/', PageView.as_view()),  # 分页路由
 ]

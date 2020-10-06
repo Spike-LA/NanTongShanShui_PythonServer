@@ -18,6 +18,7 @@ class Client(models.Model):
     unit_phone = models.CharField(max_length=50)
     unit_fax = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
+    region = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -28,6 +29,9 @@ class ContactPeople(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     contact_person = models.CharField(max_length=50)
     client_id = models.CharField(max_length=255)
+    contact_position = models.CharField(db_column='contact_ position', max_length=50)  # Field renamed to remove unsuitable characters.
+    contact_tel = models.CharField(max_length=50)
+    remark = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -151,7 +155,7 @@ class EquipmentScrap(models.Model):
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
-    applicant_department = models.CharField( max_length=50, blank=True, null=True)
+    applicant_department = models.CharField(max_length=50, blank=True, null=True)
     scrapping_reasons = models.CharField(max_length=50, blank=True, null=True)
     opinion = models.CharField(max_length=50, blank=True, null=True)
     sign = models.CharField(max_length=50, blank=True, null=True)
@@ -200,6 +204,7 @@ class SensorModel(models.Model):
     create_time = models.DateField(auto_now_add=True)
     create_people = models.CharField(max_length=50)
     status = models.CharField(max_length=50)
+    remark = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
