@@ -30,7 +30,7 @@ class ContactPeople(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     contact_person = models.CharField(max_length=50)
     client_id = models.CharField(max_length=255)
-    contact_position = models.CharField(db_column='contact_ position', max_length=50)  # Field renamed to remove unsuitable characters.
+    contact_position = models.CharField(db_column='contact_position', max_length=50)
     contact_tel = models.CharField(max_length=50)
     remark = models.CharField(max_length=255, blank=True, null=True)
 

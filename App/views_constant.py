@@ -13,4 +13,10 @@ maintenance = 3  # 维护
 working = 1  # 传感器在设备工作
 not_working = -1  # 传感器不在设备上工作
 
+# 连表
 a = ["传感器类型", "传感器型号", "状态", "备注"]
+b = ["设备状态", "设备编码", "用户单位", "地区"]
+
+#  维护状态
+stop_maintenance = 1  # 维护结束
+not_stop_maintenance = 0  # 维护未结束
