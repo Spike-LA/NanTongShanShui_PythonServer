@@ -23,7 +23,6 @@ from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
 from App.views.equipment import EquipmentViewSet
 from App.views.main_engine import MainEngineViewSet
-from App.views.pagination import PageView
 from App.views.sensor_model import SensorModelViewSet
 from App.views.sensor_type import SensorTypeViewSet
 
@@ -36,7 +35,8 @@ router.register('sensor_model', SensorModelViewSet)
 router.register('client', ClientViewSet)
 router.register('contact_people', ContactPeopleViewSet)
 
+
+app_name = "App"
 urlpatterns = [
     path('typemodel/', views.type_model, name='type_model'),  # 连表路由
-    path('page/', PageView.as_view()),  # 分页路由
 ]

@@ -1,5 +1,5 @@
 import random
-import time, datetime
+import datetime
 import uuid
 from datetime import datetime
 
@@ -10,6 +10,9 @@ from App.views_constant import on_production, stop_production
 
 
 class MainEngineSerializer(serializers.ModelSerializer):
+
+    status = serializers.CharField(max_length=50)  # 使update时能够接受status的数据
+
     class Meta:
         model = MainEngine
         fields = '__all__'

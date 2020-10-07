@@ -18,11 +18,12 @@ class Client(models.Model):
     unit_phone = models.CharField(max_length=50)
     unit_fax = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
-    region = models.CharField(max_length=50, blank=True, null=True)
+    region = models.CharField(max_length=50)
 
     class Meta:
         managed = False
         db_table = 'client'
+
 
 
 class ContactPeople(models.Model):
@@ -84,9 +85,9 @@ class Equipment(models.Model):
     storage_location = models.CharField(max_length=50)
     note = models.CharField(max_length=255, blank=True, null=True)
     equip_person = models.CharField(max_length=50)
-    create_time = models.DateTimeField(auto_now_add=True)
-    alert_time = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
+    create_time = models.DateTimeField()
+    alert_time = models.DateTimeField()
+    status = models.CharField(max_length=50)
 
     class Meta:
         managed = False
@@ -148,10 +149,10 @@ class EquipmentScrap(models.Model):
     table_id = models.CharField(max_length=50)
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
+    equipment_id = models.CharField(max_length=255, blank=True, null=True)
     equipment_number = models.CharField(max_length=50)
     equipment_remark = models.CharField(max_length=50, blank=True, null=True)
-    warehouse = models.CharField(max_length=50, blank=True, null=True)
-    location = models.CharField(max_length=50, blank=True, null=True)
+    client_id = models.CharField(max_length=255, blank=True, null=True)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
@@ -161,7 +162,6 @@ class EquipmentScrap(models.Model):
     sign = models.CharField(max_length=50, blank=True, null=True)
     approval_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
-    area = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -172,7 +172,7 @@ class MainEngine(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     engine_code = models.CharField(max_length=50)
     engine_name = models.CharField(max_length=50)
-    begin_time = models.DateField()
+    begin_time = models.DateField(blank=True, null=True)
     end_time = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=50)
     note = models.CharField(max_length=255, blank=True, null=True)
