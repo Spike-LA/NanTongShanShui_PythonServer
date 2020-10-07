@@ -13,8 +13,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf.urls import url
-from django.contrib import admin
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
@@ -22,6 +20,8 @@ from App import views
 from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
 from App.views.equipment import EquipmentViewSet
+from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
+from App.views.equipment_scrap import EquipmentScrapViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.pagination import PageView
 from App.views.sensor_model import SensorModelViewSet
@@ -35,8 +35,13 @@ router.register('sensor_type', SensorTypeViewSet)
 router.register('sensor_model', SensorModelViewSet)
 router.register('client', ClientViewSet)
 router.register('contact_people', ContactPeopleViewSet)
+router.register('equipment_scrap', EquipmentScrapViewSet)
+router.register('equipment_maintenance', EquipmentMaintenanceViewSet)
+
+
+app_name = 'App'
 
 urlpatterns = [
-    path('typemodel/', views.type_model, name='type_model'),  # 连表路由
-    path('page/', PageView.as_view()),  # 分页路由
+    path('typemodel/', views.type_model, name='type_model'),  # 设备类型和设备型号连表路由
+    path('operation/', views.operation, name='operation'),  # 设备、调拨、客户连表路由
 ]

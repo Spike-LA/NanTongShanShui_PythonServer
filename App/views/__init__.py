@@ -1,7 +1,7 @@
 import pymysql
 from django.http import HttpResponse, JsonResponse
 
-from App.views_constant import a
+from App.views_constant import a, b
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。
@@ -12,7 +12,6 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         cursor.execute("SELECT type_name,sensor_model,status,remark FROM sensor_type LEFT JOIN sensor_model ON "
                        "sensor_type.aid=sensor_model.sensor_type_id")
         results = cursor.fetchall()
-
         data_list_json = []
 
         for result in results:
@@ -28,3 +27,33 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         }
 
         return JsonResponse(data=data)  # 对象
+
+
+def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
+    if request.method == "GET":
+        conn = pymysql.connect(host="localhost", user="root", password="123456", database='ntss')
+        cursor = conn.cursor()
+        cursor.execute("SELECT equipment.status,"
+                       "equipment.equipment_code,"
+                       "client.client_unit,"
+                       "client.region "
+                       "FROM equipment "
+                       "LEFT JOIN equipment_scrap "
+                       "ON equipment.aid=equipment_scrap.equipment_id "
+                       "RIGHT JOIN client "
+                       "ON equipment_scrap.client_id=client.aid")
+
+        results = cursor.fetchall()
+
+        data_list_json = []
+
+        for result in results:
+            d = zip(b, result)
+            data = dict(d)
+            data_list_json.append(data)
+
+        data = {
+            "data": data_list_json
+        }
+
+        return JsonResponse(data=data)
