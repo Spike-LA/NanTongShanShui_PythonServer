@@ -21,5 +21,5 @@ from App.urls import router
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('app/', include(('App.urls', 'App'), namespace='app'))
+    path('app/', include('App.urls')),
 ]
