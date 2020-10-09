@@ -1,4 +1,5 @@
 # 主机
+
 on_production = 1  # 在产
 stop_production = 0  # 停产
 Delete = -1  # 逻辑删除
@@ -14,9 +15,10 @@ working = 1  # 传感器在设备工作
 not_working = -1  # 传感器不在设备上工作
 
 # 连表
-a = ["传感器类型", "传感器型号", "状态", "备注"]
-b = ["设备状态", "设备编码", "用户单位", "地区"]
+a = ["sensor_type", "sensor_model", "status", "remark"]
+b = ["status", "equipment_code", "client_unit", "region"]
 
 #  维护状态
 stop_maintenance = 1  # 维护结束
 not_stop_maintenance = 0  # 维护未结束
+
