@@ -25,7 +25,6 @@ class Client(models.Model):
         db_table = 'client'
 
 
-
 class ContactPeople(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     contact_person = models.CharField(max_length=50)
@@ -186,8 +185,8 @@ class Sensor(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_model_id = models.CharField(max_length=255)
     sensor_code = models.CharField(max_length=50)
-    create_time = models.DateField()
-    alert_time = models.DateField()
+    create_time = models.DateField(auto_now_add=True)
+    alert_time = models.DateField(auto_now=True)
     note = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
