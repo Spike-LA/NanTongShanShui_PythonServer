@@ -1,47 +1,21 @@
-<<<<<<< HEAD
-import pymysql
-from django.http import JsonResponse
+
 
 from App.functions import maintenance
-from App.views_constant import a
-=======
+
+
 import json
 
-import pymysql
 from django.core.paginator import Paginator
 from django.db import connection
 from django.http import JsonResponse
 
 from App.views_constant import b, dict_fetchall
->>>>>>> 60dcda23b42f79b16f534de2483a23f04bb96402
+
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
     # http://10.21.1.48:8000/app/typemodel/?type_name=COD传感器&sensor_model=COD8-G07&page=2&size=2
     if request.method == "GET":
-<<<<<<< HEAD
-        conn = pymysql.connect(host="localhost", user="root", password="123456", database='ntss')
-        cursor = conn.cursor()
-        cursor.execute("SELECT type_name,sensor_model,status,remark FROM sensor_type LEFT JOIN sensor_model ON "
-                       "sensor_type.aid=sensor_model.sensor_type_id")
-        results = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-        data_list_json = []
-
-        for result in results:
-            d = zip(a, result)
-
-            data = dict(d)
-
-            data_list_json.append(data)
-
-        data = {
-            "data": data_list_json
-        }
-=======
->>>>>>> 60dcda23b42f79b16f534de2483a23f04bb96402
 
         page = request.GET.get("page")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -201,13 +175,6 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                     data = maintenance(sql)
                     return JsonResponse(data=data)  # 000
 
-
-<<<<<<< HEAD
-=======
-        results = cursor.fetchall()
-        cursor.close()
-        conn.close()
->>>>>>> 60dcda23b42f79b16f534de2483a23f04bb96402
 
 
 
