@@ -9,6 +9,7 @@ on_line = 0  # 在线
 stop_run = 1  # 停运
 need_repair = 2  # 报修
 maintenance = 3  # 维护
+scraped = 4  # 报废
 
 # 传感器与设备关系
 working = 1  # 传感器在设备工作
@@ -21,4 +22,7 @@ b = ["status", "equipment_code", "client_unit", "region"]
 stop_maintenance = 1  # 维护结束
 not_stop_maintenance = 0  # 维护未结束
 
+# 维护结果
+finish_maintenance = 1  # 维护完成
+wait_maintenance = 0  # 等待维护
 

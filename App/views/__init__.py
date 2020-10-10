@@ -4,6 +4,10 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from App.functions.condition_search import maintenances, maintenance
+from App.models import EquipmentMaintenance, ContactPeople
+from App.serializers.client_serializer import ClientSerializer
+from App.serializers.contact_people_serializer import ContactPeopleSerializer
+from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
@@ -17,76 +21,40 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
             size = 5
         type_name = request.GET.get("type_name")
         sensor_model = request.GET.get("sensor_model")
+        sql_1 = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
+                      " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
+                      " ON sensor_model.aid=sensor.sensor_model_id) AS a"
+        a = "type_name=%s"
+        b = "sensor_model=%s"
+
         if type_name:
             if sensor_model:
-                sql = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
-                      " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
-                      " ON sensor_model.aid=sensor.sensor_model_id) AS a WHERE type_name=%s AND sensor_model=%s"
+                sql = sql_1 + " where "+a + " and " + b
                 table = [type_name, sensor_model]
-                results = maintenances(sql, table)
-
-                num = len(results)  # 共计几个对象
-                paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                # total = paginator.count  # 计算总行数
-                queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                data = {
-                    "count": num,
-                    "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                }
-
             else:
-                sql = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
-                      " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor " \
-                      "ON sensor_model.aid=sensor.sensor_model_id) AS a WHERE type_name=%s"
+                sql = sql_1 + " where " + a
                 table = [type_name]
-                results = maintenances(sql, table)
-
-                num = len(results)
-                paginator = Paginator(results, size)
-                queryset = paginator.page(page)
-                items = json.dumps(list(queryset))
-
-                data = {
-                    "count": num,
-                    "data": json.loads(items)
-                }
         else:
             if sensor_model:
-                sql = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
-                      " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor ON" \
-                      " sensor_model.aid=sensor.sensor_model_id) AS a WHERE sensor_model=%s"
+                sql = sql_1 + " where " + b
                 table = [sensor_model]
-                results = maintenances(sql, table)
-
-                num = len(results)
-                paginator = Paginator(results, size)
-                queryset = paginator.page(page)
-                items = json.dumps(list(queryset))
-
-                data = {
-                    "count": num,
-                    "data": json.loads(items)
-                }
 
             else:
-                sql = "SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type " \
-                      "INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id " \
-                      "INNER JOIN sensor ON sensor_model.aid=sensor.sensor_model_id"
-                results = maintenance(sql)
+                sql = sql_1
+                table = []
 
-                num = len(results)
-                paginator = Paginator(results, size)
-                queryset = paginator.page(page)
-                items = json.dumps(list(queryset))
-
-                data = {
-                    "count": num,
-                    "data": json.loads(items)
-                }
-
-    return JsonResponse(data=data)
+    if len(table) == 0:
+        results = maintenance(sql)
+    else:
+        results = maintenances(sql, table)
+    num = len(results)  # 共计几个对象
+    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+    data = {
+        "count": num,
+        "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+    }
+    return JsonResponse(data=data)  # 对象
 
 
 
@@ -101,150 +69,108 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         region = request.GET.get('region')
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
+        sql_1 = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
+                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
+        a = "region=%s"
+        b = "status=%s"
+        c = "client_unit=%s"
         if region:
             if status:
                 if client_unit:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where region=%sand status=%s and client_unit=%s"
+                    sql = sql_1 + " where "+a+" and "+b+" and "+c
                     table = [region, status, client_unit]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
                 else:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where region=%sand status=%s"
+                    sql = sql_1 + " where "+a+" and "+b
                     table = [region, status]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
             else:
                 if client_unit:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where region=%s and client_unit=%s"
+                    sql = sql_1 + " where "+a+" and "+c
                     table = [region, client_unit]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
                 else:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where region=%s"
+                    sql = sql_1 + " where " + a
                     table = [region]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
         else:
             if status:
                 if client_unit:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where status=%s and client_unit=%s"
+                    sql = sql_1 + " where " + b + " and " + c
                     table = [status, client_unit]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
                 else:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where status=%s"
+                    sql = sql_1 + " where " + b
                     table = [status]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
             else:
                 if client_unit:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where client_unit=%s"
+                    sql = sql_1 + " where " + c
                     table = [client_unit]
-                    results = maintenances(sql, table)  # 001
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
                 else:
-                    sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a "
-                    results = maintenance(sql)  # 000
-                    num = len(results)  # 共计几个对象
-                    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-                    # total = paginator.count  # 计算总行数
-                    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-                    items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
-                    # return JsonResponse(json.loads(items), safe=False)  # 将json格式数据转换为字典可以消除JsonResponse返回的结果中带的反斜杠
-                    data = {
-                        "count": num,
-                        "data": json.loads(items)  # JsonResponse消除返回的结果中带的反斜杠
-                    }
+                    sql = sql_1
+                    table = []
 
+    if len(table) == 0:
+        results = maintenance(sql)
+    else:
+        results = maintenances(sql, table)
+    num = len(results)  # 共计几个对象
+    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+    data = {
+        "count": num,
+        "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+    }
     return JsonResponse(data=data)  # 对象
 
 
+# 用于查询单个设备的维护报修记录
+def equipmentmaintenance(request):
+    if request.method == "GET":
+        begin_time = request.GET.get('begin_time')
+        end_time = request.GET.get('end_time')
+        maintain_cause = request.GET.get('maintain_cause')
+        equipment_id = request.GET.get('equipment_id')
+        page = request.GET.get("page")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
+            page = 1
+            size = 5
+        if begin_time is None or end_time is None:  # 自定义时间范围查找
+            if maintain_cause:  # 通过维护原因查找
+                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
+            else:  # 无条件查找
+                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id)
+        else:
+            if maintain_cause:  # 通过维护原因和时间范围查找
+                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(
+                    repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
+            else:  # 通过时间范围查找
+                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(repair_time__gte=begin_time).filter(repair_time__lte=end_time)
+        num = len(que)  # 共计几个对象
+        serializer = EquipmentMaintenanceSerializer(instance=que, many=True)  # 利用序列化器将查询集转化为有序字典
+        data_1 = serializer.data
+        paginator = Paginator(data_1, size)  # 确定分页器对象
+        data_2 = paginator.page(page)  # 当前页的数据
+        data = {
+            "count": num,
+            "data": list(data_2)
+        }
+    return JsonResponse(data=data)
 
-
-
-
-
-
-
-
-
-
+# 每个用户对应的各个联系人的信息查询
+def clientcontactpeople(request):
+    if request.method == 'GET':
+        page = request.GET.get("page")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
+            page = 1
+            size = 5
+        client_id = request.GET.get('client_id')
+        que = ContactPeople.objects.filter(client_id=client_id)
+        num = len(que)  # 共计几个对象
+        serializer = ContactPeopleSerializer(instance=que, many=True)
+        data_1 = serializer.data
+        paginator = Paginator(data_1, size)  # 确定分页器对象
+        data_2 = paginator.page(page)  # 当前页的数据
+        data = {
+            "count": num,
+            "data": list(data_2)
+        }
+    return JsonResponse(data=data)
