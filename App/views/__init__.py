@@ -1,16 +1,9 @@
-
-
-from App.functions import maintenance
-
-
 import json
-
+from App.functions import maintenance
 from django.core.paginator import Paginator
 from django.db import connection
 from django.http import JsonResponse
-
-from App.views_constant import b, dict_fetchall
-
+from App.views_constant import dict_fetchall
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
@@ -25,7 +18,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         type_name = request.GET.get("type_name")
         sensor_model = request.GET.get("sensor_model")
         if type_name:
-            if sensor_model:
+            if sensor_model:  # 11
                 cursor = connection.cursor()
                 sql = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
                       " LEFT JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id LEFT JOIN sensor" \
@@ -35,7 +28,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                 cursor.close()
 
                 num = len(results)  # 共计几个对象
-                paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+                paginator = Paginator(results, size)  # 转为限制行数(size)的paginator对象
                 # total = paginator.count  # 计算总行数
                 queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
                 items = json.dumps(list(queryset))  # 将数据类型进行json格式的编码
@@ -46,12 +39,12 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                 }
 
                 return JsonResponse(data=data)  # 对象
-            else:
+            else:  # 10
                 cursor = connection.cursor()
                 sql = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
                       " LEFT JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id LEFT JOIN sensor " \
                       "ON sensor_model.aid=sensor.sensor_model_id) AS a WHERE type_name=%s"
-                cursor.execute(sql, type_name)
+                cursor.execute(sql, [type_name])
                 results = dict_fetchall(cursor)
                 cursor.close()
 
@@ -67,7 +60,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
 
                 return JsonResponse(data=data)
         else:
-            if sensor_model:
+            if sensor_model:  # 01
                 cursor = connection.cursor()
                 sql = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
                       " LEFT JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id LEFT JOIN sensor ON" \
@@ -87,7 +80,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                 }
 
                 return JsonResponse(data=data)
-            else:
+            else:  # 00
                 cursor = connection.cursor()
                 cursor.execute("SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type LEFT JOIN "
                                "sensor_model ON sensor_type.aid=sensor_model.sensor_type_id LEFT JOIN sensor ON "
@@ -174,8 +167,3 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                           "RIGHT JOIN client ON equipment_scrap.client_id=client.aid) AS a "
                     data = maintenance(sql)
                     return JsonResponse(data=data)  # 000
-
-
-
-
-
