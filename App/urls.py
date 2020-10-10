@@ -21,7 +21,7 @@ from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
 from App.views.equipment import EquipmentViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
-from App.views.equipment_scrap import EquipmentScrapViewSet
+from App.views.equipment_allocation import EquipmentAllocationViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.sensor import SensorViewSet
 from App.views.sensor_model import SensorModelViewSet
@@ -35,7 +35,7 @@ router.register('sensor_type', SensorTypeViewSet)
 router.register('sensor_model', SensorModelViewSet)
 router.register('client', ClientViewSet)
 router.register('contact_people', ContactPeopleViewSet)
-router.register('equipment_scrap', EquipmentScrapViewSet)
+router.register('equipment_allocation', EquipmentAllocationViewSet)
 router.register('equipment_maintenance', EquipmentMaintenanceViewSet)
 router.register('sensor', SensorViewSet)
 
@@ -43,9 +43,7 @@ router.register('sensor', SensorViewSet)
 app_name = "App"
 
 urlpatterns = [
-
     path('typemodel/', views.type_model, name='type_model'),  # 设备类型和设备型号连表路由
     path('operation/', views.operation, name='operation'),  # 设备、调拨、客户连表路由
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
-
 ]

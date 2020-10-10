@@ -22,10 +22,3 @@ stop_maintenance = 1  # 维护结束
 not_stop_maintenance = 0  # 维护未结束
 
 
-def dict_fetchall(cursor):
-    columns = [col[0] for col in cursor.description]  # 拿到对应的字段列表
-    return [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-    ]
-
