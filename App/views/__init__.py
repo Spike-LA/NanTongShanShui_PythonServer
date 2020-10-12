@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from App.functions.condition_search import maintenances, maintenance
-from App.models import EquipmentMaintenance, ContactPeople
+from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel
 from App.serializers.client_serializer import ClientSerializer
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
@@ -14,7 +14,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
     # http://10.21.1.48:8000/app/typemodel/?type_name=COD传感器&sensor_model=COD8-G07&page=2&size=2
     if request.method == "GET":
 
-        page = request.GET.get("page")  # 第几页
+        page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if page is None or size is None:  # 默认返回
             page = 1
@@ -59,7 +59,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
 
 
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
-    # http://10.21.1.48:8000/app/operation/?region=地区&status=设备状态&client_unit=客户单位&page=2&size=2
+    # http://10.21.1.106:8000/app/operation/?region=地区&status=设备状态&client_unit=客户单位&page=2&size=2
     if request.method == "GET":
         page = request.GET.get("page")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -69,7 +69,7 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         region = request.GET.get('region')
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
-        sql_1 = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
+        sql_1 = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
                           "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                           "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
         a = "region=%s"
@@ -174,3 +174,59 @@ def clientcontactpeople(request):
             "data": list(data_2)
         }
     return JsonResponse(data=data)
+
+
+def real_time_monitoring(request):
+    if request.method == 'GET':
+        equipment_id = request.GET.get('equipment_id')
+        page = request.GET.get("page")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
+            page = 1
+            size = 5
+        sql = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
+                "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
+        table = [equipment_id]
+        result = maintenances(sql, table)
+        num = len(result)  # 共计几个对象
+        paginator = Paginator(result, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+        return JsonResponse(data=data)  # 对象
+
+
+# 用于向前端返回所有的传感器类型和类型id
+def sensortype(request):
+    if request.method == 'GET':
+        queryset = SensorType.objects.all()
+        data = []
+        for obj in queryset:
+            data_1 = {}
+            data_1['aid'] = obj.aid
+            data_1['type_name'] = obj.type_name
+            data.append(data_1)
+    return JsonResponse(data=data, safe=False)
+
+# 用于获取对应传感器类型下的传感器型号和型号id
+def sensortypetomodel(request):
+    if request.method == 'GET':
+        type_name = request.GET.get('type_name')
+        queryset_1 = SensorType.objects.filter(type_name=type_name)
+        data_1 = []
+        data_2 = []
+        for obj_1 in queryset_1:
+            data_1.append(obj_1.aid)
+        for aid in data_1:
+            queryset_2 = SensorModel.objects.filter(sensor_type_id=aid)
+            for obj_2 in queryset_2:
+                data_3 = {}
+                data_3['aid'] = obj_2.aid
+                data_3['sensor_model'] = obj_2.sensor_model
+                data_2.append(data_3)
+
+    return JsonResponse(data=data_2, safe=False)
+

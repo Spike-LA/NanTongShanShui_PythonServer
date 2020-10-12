@@ -45,11 +45,12 @@ class CustomerAccount(models.Model):
     account_password = models.CharField(max_length=50)
     customer_id = models.CharField(max_length=255)
     role = models.CharField(max_length=50, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True)
+    role_number = models.CharField(max_length=50, blank=True, null=True)
+    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
     add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True)
+    mod_time = models.DateField(blank=True, null=True, auto_now=True)
     mod_by = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -59,15 +60,15 @@ class CustomerAccount(models.Model):
 class EnterpriseAccount(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     account_id = models.CharField(max_length=50, blank=True, null=True)
-    account_name = models.CharField(max_length=50, blank=True, null=True)
     enterprise_number = models.CharField(max_length=50, blank=True, null=True)
     account_password = models.CharField(max_length=50, blank=True, null=True)
     telephone_number = models.CharField(max_length=50, blank=True, null=True)
     position = models.CharField(max_length=50, blank=True, null=True)
     role = models.CharField(max_length=50, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True)
+    role_number = models.CharField(max_length=50, blank=True, null=True)
+    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
     add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True)
+    mod_time = models.DateField(blank=True, null=True, auto_now=True)
     mod_by = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
 
@@ -171,7 +172,7 @@ class MainEngine(models.Model):
     engine_name = models.CharField(max_length=50)
     begin_time = models.DateField(blank=True, null=True)
     end_time = models.DateField(blank=True, null=True)
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
@@ -187,6 +188,7 @@ class Sensor(models.Model):
     sensor_code = models.CharField(max_length=50)
     create_time = models.DateField(auto_now_add=True)
     alert_time = models.DateField(auto_now=True)
+    offset = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
