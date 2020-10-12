@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from App.functions.condition_search import maintenances, maintenance
 
 
-
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
     # http://10.21.1.48:8000/app/typemodel/?type_name=COD传感器&sensor_model=COD8-G07&page=2&size=2
     if request.method == "GET":
@@ -46,12 +45,10 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                 table = [type_name]
                 results = maintenances(sql, table)
 
-
                 num = len(results)
                 paginator = Paginator(results, size)
                 queryset = paginator.page(page)
                 items = json.dumps(list(queryset))
-
                 data = {
                     "count": num,
                     "data": json.loads(items)
@@ -91,7 +88,6 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                 }
 
     return JsonResponse(data=data)
-
 
 
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
@@ -225,8 +221,8 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                     }
                 else:
                     sql = "SELECT * from (SELECT equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment LEFT JOIN equipment_scrap ON equipment.aid=equipment_scrap.equipment_id " \
-                          "RIGHT JOIN client ON equipment_scrap.client_id=client.aid) AS a "
+                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
                     results = maintenance(sql)  # 000
                     num = len(results)  # 共计几个对象
                     paginator = Paginator(results, size)  # 转为限制行数的paginator对象
