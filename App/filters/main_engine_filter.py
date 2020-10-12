@@ -13,4 +13,4 @@ class MainEngineFilter(FilterSet):
 
     class Meta:
         model = MainEngine
-        fields = ['engine_code']
+        fields = []

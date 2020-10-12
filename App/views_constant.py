@@ -9,16 +9,21 @@ on_line = 0  # 在线
 stop_run = 1  # 停运
 need_repair = 2  # 报修
 maintenance = 3  # 维护
+scraped = 4  # 报废
 
 # 传感器与设备关系
 working = 1  # 传感器在设备工作
 not_working = -1  # 传感器不在设备上工作
 
-# 连表
-b = ["status", "equipment_code", "client_unit", "region"]
-
 #  维护状态
 stop_maintenance = 1  # 维护结束
 not_stop_maintenance = 0  # 维护未结束
 
+# 维护结果
+finish_maintenance = 1  # 维护完成
+wait_maintenance = 0  # 等待维护
+
+# 账户状态
+activated = 1  # 账户已激活
+none_efficacy = 0  # 账户已失效
 

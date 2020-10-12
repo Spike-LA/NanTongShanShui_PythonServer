@@ -14,4 +14,4 @@ class EquipmentFilter(django_filters.FilterSet):
 
         model = Equipment
 
-        fields = ['engine_code']
+        fields = []

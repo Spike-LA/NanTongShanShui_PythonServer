@@ -16,7 +16,7 @@ class MainEngineSerializer(serializers.ModelSerializer):
     class Meta:
         model = MainEngine
         fields = '__all__'
-        read_only_fields = ('aid', 'engine_code', 'status',)
+        read_only_fields = ('aid', 'engine_code', 'status')
 
     def create(self, validated_data):
         instance = MainEngine()

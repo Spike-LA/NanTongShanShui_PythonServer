@@ -19,9 +19,11 @@ from rest_framework.routers import DefaultRouter
 from App import views
 from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
+from App.views.customer_account import CustomerAccountViewSet
+from App.views.enterprise_account import EnterpriseAccountViewSet
 from App.views.equipment import EquipmentViewSet
-from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
 from App.views.equipment_allocation import EquipmentAllocationViewSet
+from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.sensor import SensorViewSet
 from App.views.sensor_model import SensorModelViewSet
@@ -38,6 +40,8 @@ router.register('contact_people', ContactPeopleViewSet)
 router.register('equipment_allocation', EquipmentAllocationViewSet)
 router.register('equipment_maintenance', EquipmentMaintenanceViewSet)
 router.register('sensor', SensorViewSet)
+router.register('enterprise_account', EnterpriseAccountViewSet)
+router.register('customer_account', CustomerAccountViewSet)
 
 
 app_name = "App"
@@ -45,5 +49,10 @@ app_name = "App"
 urlpatterns = [
     path('typemodel/', views.type_model, name='type_model'),  # 设备类型和设备型号连表路由
     path('operation/', views.operation, name='operation'),  # 设备、调拨、客户连表路由
+    path('maintenance/', views.equipmentmaintenance, name='equipment_maintenance'),  # 单个设备的维护报修记录
+    path('ClientContactPeople/', views.clientcontactpeople, name='clientcontactperson'),  # 每个用户对应的联系人查询
+    path('real_time_monitoring/', views.real_time_monitoring, name='real_time_monitoring'),
+    path('sensor_type/', views.sensortype, name ='sensor_type'),
+    path('sensor_type_to_model/', views.sensortypetomodel, name='sensor_type_to_model')
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]
