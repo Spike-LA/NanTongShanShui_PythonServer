@@ -184,12 +184,10 @@ class Sensor(models.Model):
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
     sensor_code = models.CharField(max_length=50)
-    sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
-    notice_content = models.CharField(max_length=50, blank=True, null=True)
     create_time = models.DateField(auto_now_add=True)
     alert_time = models.DateField(auto_now=True)
-    offset = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=50)
 
     class Meta:
         managed = False
@@ -203,9 +201,6 @@ class SensorModel(models.Model):
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
     create_time = models.DateField(auto_now_add=True)
-    create_people = models.CharField(max_length=50)
-    status = models.CharField(max_length=50)
-    remark = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -216,7 +211,6 @@ class SensorType(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     type_name = models.CharField(max_length=50)
     create_time = models.DateField(auto_now_add=True)
-    create_people = models.CharField(max_length=50)
 
     class Meta:
         managed = False
