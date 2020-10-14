@@ -4,6 +4,7 @@ from rest_framework import viewsets
 
 from App.filters.equipment_filter import EquipmentFilter
 from App.models import Equipment
+from App.pagination import MyPageNumberPagination
 from App.serializers.equipment_serializer import EquipmentSerializer
 
 
@@ -13,4 +14,5 @@ class EquipmentViewSet(viewsets.ModelViewSet):
 
     filter_backends = (DjangoFilterBackend,)
     filter_class = EquipmentFilter
+    pagination_class = MyPageNumberPagination
 

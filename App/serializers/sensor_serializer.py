@@ -5,14 +5,15 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import Sensor
-from App.views_constant import on_using, stop_using
+from App.views_constant import is_using, not_using
 
 
 class SensorSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Sensor
         fields = '__all__'
-        read_only_fields = ('aid', 'sensor_code', 'sensor_model_id',)
+        read_only_fields = ('aid', 'sensor_code',)
 
     def create(self, validated_data):
 
@@ -22,10 +23,11 @@ class SensorSerializer(serializers.ModelSerializer):
         instance.sensor_model_id = validated_data.get('sensor_model_id')
         instance.sensor_threshold = validated_data.get('sensor_threshold')
         instance.notice_content = validated_data.get('notice_content')
-        instance.status = validated_data.get('status')
+        instance.default_compensation = validated_data.get('default_compensation')
         instance.note = validated_data.get('note')
         now = datetime.now()  # 时间模块  现在时间
         instance.sensor_code = now.strftime("%Y%m%d") + str(random.randint(1000, 9999))  # 导入事件模块和随机模块生成编号
+        instance.status = is_using  # 设置传感器状态为可以使用
 
         instance.save()
 
@@ -35,14 +37,11 @@ class SensorSerializer(serializers.ModelSerializer):
 
         instance.sensor_threshold = validated_data.get('sensor_threshold', instance.sensor_threshold)
         instance.notice_content = validated_data.get('notice_content', instance.notice_content)
-        instance.create_time = validated_data.get('create_time', instance.create_time)
-        instance.alert_time = validated_data.get('alert_time', instance.alert_time)
-        instance.offset = validated_data.get('offset', instance.offset)
+        instance.default_compensation = validated_data.get('default_compensation', instance.default_compensation)
         instance.note = validated_data.get('note', instance.note)
-        status = validated_data.get('status')
-        if status == '可以使用':
-            instance.status = on_using
+        if validated_data.get('status') == '停止使用':
+            instance.status = not_using
         else:
-            instance.status = stop_using
+            pass
         instance.save()
         return instance

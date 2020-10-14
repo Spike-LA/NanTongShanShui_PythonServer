@@ -3,7 +3,6 @@ import uuid
 from rest_framework import serializers
 
 from App.models import SensorModel
-from App.views_constant import on_using
 
 
 class SensorModelSerializer(serializers.ModelSerializer):

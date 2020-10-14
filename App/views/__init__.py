@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 
 from App.functions.condition_search import maintenances, maintenance
-from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel
+from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, MainEngine
 from App.serializers.client_serializer import ClientSerializer
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
@@ -16,33 +16,49 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
 
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
-        if page is None or size is None:  # 默认返回
-            page = 1
-            size = 5
+        if not page:
+            if not size:
+                page = 1
+                size = 5
         type_name = request.GET.get("type_name")
         sensor_model = request.GET.get("sensor_model")
-        sql_1 = "SELECT * FROM (SELECT type_name,sensor_model,status,note,sensor_code FROM sensor_type" \
+        sensor_code = request.GET.get('sensor_code')
+        sql_1 = "SELECT * FROM (SELECT sensor.aid,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
                       " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
                       " ON sensor_model.aid=sensor.sensor_model_id) AS a"
         a = "type_name=%s"
         b = "sensor_model=%s"
-
+        c = "sensor_code=%s"
         if type_name:
             if sensor_model:
-                sql = sql_1 + " where "+a + " and " + b
-                table = [type_name, sensor_model]
+                if sensor_code:  # 111
+                    sql = sql_1 + " where "+a + " and " + b + " and " + c
+                    table = [type_name, sensor_model, sensor_code]
+                else:  # 110
+                    sql = sql_1 + " where "+a + " and " + b
+                    table = [type_name, sensor_model]
             else:
-                sql = sql_1 + " where " + a
-                table = [type_name]
+                if sensor_code: # 101
+                    sql = sql_1 + " where "+a + " and " + c
+                    table = [type_name, sensor_code]
+                else:  # 100
+                    sql = sql_1 + " where " + a
+                    table = [type_name]
         else:
             if sensor_model:
-                sql = sql_1 + " where " + b
-                table = [sensor_model]
-
+                if sensor_code:  # 011
+                    sql = sql_1 + " where " + b + " and " + c
+                    table = [sensor_model, sensor_code]
+                else:  # 010
+                    sql = sql_1 + " where " + b
+                    table = [sensor_model]
             else:
-                sql = sql_1
-                table = []
-
+                if sensor_code: # 001
+                    sql = sql_1 + " where " + c
+                    table = [sensor_code]
+                else:  # 000
+                    sql = sql_1
+                    table = []
     if len(table) == 0:
         results = maintenance(sql)
     else:
@@ -63,9 +79,10 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
     if request.method == "GET":
         page = request.GET.get("page")  # 第几页
         size = request.GET.get("size")  # 每页多少
-        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
-            page = 1
-            size = 5
+        if not page:
+            if not size:
+                page = 1
+                size = 5
         region = request.GET.get('region')
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
@@ -127,11 +144,12 @@ def equipmentmaintenance(request):
         end_time = request.GET.get('end_time')
         maintain_cause = request.GET.get('maintain_cause')
         equipment_id = request.GET.get('equipment_id')
-        page = request.GET.get("page")  # 第几页
+        currentPage = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
-        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
-            page = 1
-            size = 5
+        if not currentPage:
+            if not size:
+                currentPage = 1
+                size = 5
         if begin_time is None or end_time is None:  # 自定义时间范围查找
             if maintain_cause:  # 通过维护原因查找
                 que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
@@ -147,7 +165,7 @@ def equipmentmaintenance(request):
         serializer = EquipmentMaintenanceSerializer(instance=que, many=True)  # 利用序列化器将查询集转化为有序字典
         data_1 = serializer.data
         paginator = Paginator(data_1, size)  # 确定分页器对象
-        data_2 = paginator.page(page)  # 当前页的数据
+        data_2 = paginator.page(currentPage)  # 当前页的数据
         data = {
             "count": num,
             "data": list(data_2)
@@ -157,11 +175,12 @@ def equipmentmaintenance(request):
 # 每个用户对应的各个联系人的信息查询
 def clientcontactpeople(request):
     if request.method == 'GET':
-        page = request.GET.get("page")  # 第几页
+        page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
-        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
-            page = 1
-            size = 5
+        if not page:
+            if not size:
+                page = 1
+                size = 5
         client_id = request.GET.get('client_id')
         que = ContactPeople.objects.filter(client_id=client_id)
         num = len(que)  # 共计几个对象
@@ -175,15 +194,16 @@ def clientcontactpeople(request):
         }
     return JsonResponse(data=data)
 
-
+# 实时监控接口
 def real_time_monitoring(request):
     if request.method == 'GET':
         equipment_id = request.GET.get('equipment_id')
         page = request.GET.get("page")  # 第几页
         size = request.GET.get("size")  # 每页多少
-        if page is None or size is None:  # 默认返回（page和size有一个为空则为True,执行默认分页)
-            page = 1
-            size = 5
+        if not page:
+            if not size:
+                page = 1
+                size = 5
         sql = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
                 "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                 "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
@@ -229,3 +249,89 @@ def sensortypetomodel(request):
                 data_2.append(data_3)
 
     return JsonResponse(data=data_2, safe=False)
+
+# 设备信息页面的查询和搜索
+def equipmenttoenginename(request):
+    # http://10.21.1.106:8000/app/equipment_to_engine_name/?engine_code=&equipment_code=&currentPage=&size=
+    if request.method == 'GET':
+        engine_code = request.GET.get('engine_code')
+        equipment_code = request.GET.get('equipment_code')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            if not size:
+                page = 1
+                size = 5
+        sql_1 = "SELECT * from (SELECT equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name " \
+              "FROM equipment INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
+        a = "engine_code = %s"
+        b = "equipment_code = %s"
+        if engine_code:
+            if equipment_code:  # 11
+                sql = sql_1 + " where "+a+" and "+b
+                table = [engine_code,equipment_code]
+            else:  # 10
+                sql = sql_1 + " where " + a
+                table = [engine_code]
+        else:
+            if equipment_code:  # 01
+                sql = sql_1 + " where " + b
+                table = [equipment_code]
+            else:  # 00
+                sql = sql_1
+                table = []
+
+        if len(table) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, table)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+
+        return JsonResponse(data=data)
+
+# 设备表、传感器表、传感器类型表、传感器型号表四表级联
+# 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型
+def equipmenttosensor3(request):
+    # http://10.21.1.106:8000/app/equipment_to_sensor3/?equipment_id=&currentPage=&size=
+    if request.method == 'GET':
+        equipment_id = request.GET.get('equipment_id')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            if not size:
+                page = 1
+                size = 5
+        a = 'equipment_id=%s'
+        sql_1 = "SELECT * from (SELECT sensor.sensor_code,sensor_model.sensor_model,sensor_type.type_name,equipment_and_sensor.equipment_id " \
+              "FROM equipment_and_sensor " \
+              "INNER JOIN sensor " \
+              "ON equipment_and_sensor.sensor_id=sensor.aid " \
+              "INNER JOIN sensor_model " \
+              "ON sensor.sensor_model_id=sensor_model.aid " \
+              "INNER JOIN sensor_type " \
+              "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
+        if equipment_id:
+            sql = sql_1+" where "+a
+            table = [equipment_id]
+        else:
+            sql = sql_1
+            table = []
+
+        if len(table) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, table)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)
+        }
+        return JsonResponse(data=data)
