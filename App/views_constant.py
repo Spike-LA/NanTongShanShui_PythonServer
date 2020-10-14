@@ -27,3 +27,6 @@ wait_maintenance = 0  # 等待维护
 activated = 1  # 账户已激活
 none_efficacy = 0  # 账户已失效
 
+# 传感器状态
+on_using = 1  # 可以使用
+stop_using = 0  # 停止使用

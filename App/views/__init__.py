@@ -229,4 +229,3 @@ def sensortypetomodel(request):
                 data_2.append(data_3)
 
     return JsonResponse(data=data_2, safe=False)
-

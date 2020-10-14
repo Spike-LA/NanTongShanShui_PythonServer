@@ -17,7 +17,6 @@ class SensorTypeSerializer(serializers.ModelSerializer):
 
         instance.aid = uuid.uuid4().hex
         instance.type_name = validated_data.get('type_name')
-        instance.create_people = validated_data.get('create_people')
 
         instance.save()
 

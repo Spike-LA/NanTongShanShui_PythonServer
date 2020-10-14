@@ -27,7 +27,9 @@ class EquipmentMaintenanceSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.maintain_time = validated_data.get('maintain_time', instance.maintain_time)
         instance.maintain_cause = validated_data.get('maintain_cause', instance.maintain_cause)
+        instance.fault_description = validated_data.get('fault_description', instance.maintain_cause)
         instance.maintain_result = finish_maintenance  # 设置维护结果为维护完成
         instance.maintain_status = stop_maintenance  # 设置维护状态为维护结束
+        instance.responsible_person = validated_data.get('responsible_person', instance.responsible_person)
         instance.save()
         return instance
