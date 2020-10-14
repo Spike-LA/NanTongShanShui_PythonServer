@@ -26,3 +26,4 @@ class SensorModelSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
