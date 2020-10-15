@@ -22,11 +22,17 @@ not_stop_maintenance = 0  # 维护未结束
 # 维护结果
 finish_maintenance = 1  # 维护完成
 wait_maintenance = 0  # 等待维护
+not_finish_maintenance = -1  # 维护未完成
+
+# 维护原因
+routine_maintenance = 0  # 例行维护
+user_repair = 1  # 用户报修
+operation_maintenance = 2  # 运维报修
 
 # 账户状态
 activated = 1  # 账户已激活
 none_efficacy = 0  # 账户已失效
 
 # 传感器状态
-on_using = 1  # 可以使用
-stop_using = 0  # 停止使用
+is_using = 1  # 可以使用
+not_using = -1  # 停止使用

@@ -53,6 +53,9 @@ urlpatterns = [
     path('ClientContactPeople/', views.clientcontactpeople, name='clientcontactperson'),  # 每个用户对应的联系人查询
     path('real_time_monitoring/', views.real_time_monitoring, name='real_time_monitoring'),
     path('sensor_type/', views.sensortype, name ='sensor_type'),
-    path('sensor_type_to_model/', views.sensortypetomodel, name='sensor_type_to_model')
+    path('sensor_type_to_model/', views.sensortypetomodel, name='sensor_type_to_model'),
+    path('equipment_to_engine_name/', views.equipmenttoenginename, name='equipment_to_engine_name'),
+    path('equipment_to_sensor3/', views.equipmenttosensor3, name='equipment_to_sensor3')
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]
+

@@ -102,7 +102,7 @@ class EquipmentAndSensor(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'equipment and sensor'
+        db_table = 'equipment_and_sensor'
 
 
 class EquipmentAllocation(models.Model):
@@ -130,7 +130,7 @@ class EquipmentAllocation(models.Model):
 
 class EquipmentMaintenance(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    equipment_id = models.CharField(max_length=255)
+    equipment_id = models.CharField(max_length=255, blank=True, null=True)
     repair_time = models.DateField(blank=True, null=True, auto_now_add=True)
     maintain_time = models.DateField(blank=True, null=True)
     maintain_cause = models.CharField(max_length=255, blank=True, null=True)
@@ -181,15 +181,16 @@ class MainEngine(models.Model):
 
 class Sensor(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    sensor_model_id = models.CharField(max_length=255)
+    sensor_model_id = models.CharField(max_length=255, blank=True, null=True)
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
     sensor_code = models.CharField(max_length=50)
     create_time = models.DateField(auto_now_add=True)
     alert_time = models.DateField(auto_now=True)
     note = models.CharField(max_length=255, blank=True, null=True)
-    status = models.CharField(max_length=50)
     default_compensation = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+
 
     class Meta:
         managed = False
@@ -242,3 +243,15 @@ class WaterQualityNotice(models.Model):
     class Meta:
         managed = False
         db_table = 'water_quality_notice'
+
+
+class SensorCalibration(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    sensor_id = models.CharField(max_length=255, blank=True, null=True)
+    calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
+    calibrate_time = models.DateField(auto_now_add=True)
+    remark = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'sensor_calibration'
