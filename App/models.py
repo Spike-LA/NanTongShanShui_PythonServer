@@ -59,22 +59,23 @@ class CustomerAccount(models.Model):
 
 class EnterpriseAccount(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    account_id = models.CharField(max_length=50, blank=True, null=True)
-    enterprise_number = models.CharField(max_length=50, blank=True, null=True)
-    account_password = models.CharField(max_length=50, blank=True, null=True)
+    account_id = models.CharField(max_length=50)
+    role_number = models.CharField(max_length=50, blank=True, null=True)
+    enterprise_number = models.CharField(max_length=50)
+    account_password = models.CharField(max_length=50)
     telephone_number = models.CharField(max_length=50, blank=True, null=True)
     position = models.CharField(max_length=50, blank=True, null=True)
     role = models.CharField(max_length=50, blank=True, null=True)
-    role_number = models.CharField(max_length=50, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    add_time = models.DateField(blank=True, null=True)
     add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True, auto_now=True)
+    mod_time = models.DateField(blank=True, null=True)
     mod_by = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'enterprise_account'
+
 
 
 class Equipment(models.Model):
@@ -188,10 +189,23 @@ class Sensor(models.Model):
     alert_time = models.DateField(auto_now=True)
     note = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=50)
+    default_compensation = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'sensor'
+
+
+class SensorCalibration(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    sensor_id = models.CharField(max_length=255, blank=True, null=True)
+    calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
+    calibrate_time = models.DateField(blank=True, null=True)
+    remark = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'sensor_calibration'
 
 
 class SensorModel(models.Model):
