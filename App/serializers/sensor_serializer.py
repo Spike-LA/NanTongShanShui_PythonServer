@@ -4,11 +4,12 @@ from datetime import datetime
 
 from rest_framework import serializers
 
-from App.models import Sensor
+from App.models import Sensor, SensorCalibration
 from App.views_constant import is_using, not_using
 
 
 class SensorSerializer(serializers.ModelSerializer):
+    theoretical_value = serializers.CharField(write_only=True)
 
     class Meta:
         model = Sensor
@@ -18,6 +19,7 @@ class SensorSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         instance = Sensor()
+        instance_calibration = SensorCalibration()
 
         instance.aid = uuid.uuid4().hex
         instance.sensor_model_id = validated_data.get('sensor_model_id')
@@ -30,6 +32,11 @@ class SensorSerializer(serializers.ModelSerializer):
         instance.status = is_using  # 设置传感器状态为可以使用
 
         instance.save()
+
+        instance_calibration.aid = uuid.uuid4().hex
+        instance_calibration.sensor_id = instance.aid
+        instance_calibration.theoretical_value = validated_data.get('theoretical_value')
+        instance_calibration.save()
 
         return instance
 

@@ -1,13 +1,15 @@
-import json
+import datetime
 
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.utils import timezone
+from influxdb_metrics.utils import query
 
 from App.functions.condition_search import maintenances, maintenance
-from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, MainEngine
-from App.serializers.client_serializer import ClientSerializer
+from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
+from App.serializers.sensor_serializer import SensorSerializer
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
@@ -17,9 +19,11 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
-            if not size:
-                page = 1
-                size = 5
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
         type_name = request.GET.get("type_name")
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
@@ -80,9 +84,11 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         page = request.GET.get("page")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
-            if not size:
-                page = 1
-                size = 5
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
         region = request.GET.get('region')
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
@@ -147,20 +153,40 @@ def equipmentmaintenance(request):
         currentPage = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not currentPage:
-            if not size:
-                currentPage = 1
-                size = 5
-        if begin_time is None or end_time is None:  # 自定义时间范围查找
-            if maintain_cause:  # 通过维护原因查找
-                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
-            else:  # 无条件查找
-                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id)
+            currentPage = 1
+            size = 5
+        if not size:
+            currentPage = 1
+            size = 5
+
+        if not begin_time:
+            if not end_time:
+                if maintain_cause:  # 通过维护原因查找 001
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
+                else:  # 无条件查找 000
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id)
+            else:
+                if maintain_cause:  # 通过维护原因和end_time查找 011
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).\
+                        filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
+                else:  # 通过end_time查找 010
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                        (repair_time__lte=end_time)
         else:
-            if maintain_cause:  # 通过维护原因和时间范围查找
-                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(
-                    repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
-            else:  # 通过时间范围查找
-                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(repair_time__gte=begin_time).filter(repair_time__lte=end_time)
+            if not end_time:
+                if maintain_cause:  # 通过维护原因和begin_time查找 101
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                        (repair_time__gte=begin_time).filter(maintain_cause=maintain_cause)
+                else:  # 通过begin_time查找 100
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                        (repair_time__gte=begin_time)
+            else:
+                if maintain_cause:  # 通过维护原因和时间范围查找 111
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                        (repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
+                else:  # 通过维护原因、begin_time查找 110
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                        (repair_time__gte=begin_time)
         num = len(que)  # 共计几个对象
         serializer = EquipmentMaintenanceSerializer(instance=que, many=True)  # 利用序列化器将查询集转化为有序字典
         data_1 = serializer.data
@@ -178,9 +204,11 @@ def clientcontactpeople(request):
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
-            if not size:
-                page = 1
-                size = 5
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
         client_id = request.GET.get('client_id')
         que = ContactPeople.objects.filter(client_id=client_id)
         num = len(que)  # 共计几个对象
@@ -194,16 +222,18 @@ def clientcontactpeople(request):
         }
     return JsonResponse(data=data)
 
-# 实时监控接口
-def real_time_monitoring(request):
+# 实时监控接口（页面上部）
+def real_time_monitoring_high(request):
     if request.method == 'GET':
         equipment_id = request.GET.get('equipment_id')
         page = request.GET.get("page")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
-            if not size:
-                page = 1
-                size = 5
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
         sql = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
                 "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                 "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
@@ -259,10 +289,12 @@ def equipmenttoenginename(request):
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
-            if not size:
-                page = 1
-                size = 5
-        sql_1 = "SELECT * from (SELECT equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name " \
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        sql_1 = "SELECT * from (SELECT equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,equipment.storehouse,equipment.storage_location,equipment.note " \
               "FROM equipment INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
         a = "engine_code = %s"
         b = "equipment_code = %s"
@@ -304,9 +336,11 @@ def equipmenttosensor3(request):
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
-            if not size:
-                page = 1
-                size = 5
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
         a = 'equipment_id=%s'
         sql_1 = "SELECT * from (SELECT sensor.sensor_code,sensor_model.sensor_model,sensor_type.type_name,equipment_and_sensor.equipment_id " \
               "FROM equipment_and_sensor " \
@@ -335,3 +369,39 @@ def equipmenttosensor3(request):
             "data": list(queryset)
         }
         return JsonResponse(data=data)
+
+# 与时序数据库进行交互操作
+def real_time_monitoring_down(request):
+    if request.method == 'GET':
+        deviceNum = request.GET.get('deviceNum')
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        time = "T00:00:00.000000Z"
+        # today = datetime.date.today()
+        # oneday = datetime.timedelta(days=1)
+        # tomorrow = today + oneday
+        if not begin_time_first:
+            if not end_time_first:
+                # begin_time_first = str(today)
+                # end_time_first = str(tomorrow)
+                # 数据库只有10月10号的数据
+                begin_time_first = '2020-10-10'
+                end_time_first = '2020-10-11'
+        begin_time = begin_time_first + time
+        end_time = end_time_first + time
+        print(begin_time, end_time)
+        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (deviceNum, begin_time, end_time)
+        print(sql)
+        data = query(sql)
+        for i in data:
+            result_list = i
+            return JsonResponse(data=result_list, safe=False)
+
+# 通过传感器型号aid给前端发送对应的传感器的全局id和编码
+def sensormodeltocode(request):
+    if request.method == "GET":
+        sensor_model_id = request.GET.get('sensor_model_id')
+        que = Sensor.objects.filter(sensor_model_id=sensor_model_id)
+        serializer = SensorSerializer(instance=que, many=True)
+        data = serializer.data
+    return JsonResponse(data=data, safe=False)

@@ -17,7 +17,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
         fields = '__all__'  # 显示所需要的字段#     #'__all__'显示全部的字段#
 
-        read_only_fields = ('aid', 'equipment_code')
+        read_only_fields = ('aid',)
 
     def create(self, validated_data):  # 需要自定义创建内容时自行创建create方法#
         print(validated_data.get('equipment_sensor'))
@@ -26,8 +26,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
         instance.aid = uuid.uuid4().hex
         instance.engine_code = validated_data.get('engine_code')
-        now = datetime.now()
-        instance.equipment_code = now.strftime("%Y%m%d") + str(random.randint(100, 999))
+        instance.equipment_code = validated_data.get('equipment_code')
         instance.storehouse = validated_data.get('storehouse')
         instance.storage_location = validated_data.get('storage_location')
         instance.note = validated_data.get('note')
@@ -36,7 +35,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
         instance.save()
 
-        # 前端传输格式为"12344,54321"
+        # 设备上的每个传感器id,前端传输格式为"12344,54321"
         ar = validated_data.get('equipment_sensor')
         print(ar)
         # split方法对字符串进行分割，然后形成列表
