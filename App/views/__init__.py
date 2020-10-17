@@ -16,6 +16,9 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
 
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
+        # if page is None or size is None:  # 默认返回
+        #     page = 1
+        #     size = 5
         if not page:
             if not size:
                 page = 1
@@ -24,22 +27,22 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
         sql_1 = "SELECT * FROM (SELECT sensor.aid,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
-                      " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
-                      " ON sensor_model.aid=sensor.sensor_model_id) AS a"
+                " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
+                " ON sensor_model.aid=sensor.sensor_model_id) AS a"
         a = "type_name=%s"
         b = "sensor_model=%s"
         c = "sensor_code=%s"
         if type_name:
             if sensor_model:
                 if sensor_code:  # 111
-                    sql = sql_1 + " where "+a + " and " + b + " and " + c
+                    sql = sql_1 + " where " + a + " and " + b + " and " + c
                     table = [type_name, sensor_model, sensor_code]
                 else:  # 110
-                    sql = sql_1 + " where "+a + " and " + b
+                    sql = sql_1 + " where " + a + " and " + b
                     table = [type_name, sensor_model]
             else:
-                if sensor_code: # 101
-                    sql = sql_1 + " where "+a + " and " + c
+                if sensor_code:  # 101
+                    sql = sql_1 + " where " + a + " and " + c
                     table = [type_name, sensor_code]
                 else:  # 100
                     sql = sql_1 + " where " + a
@@ -53,7 +56,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                     sql = sql_1 + " where " + b
                     table = [sensor_model]
             else:
-                if sensor_code: # 001
+                if sensor_code:  # 001
                     sql = sql_1 + " where " + c
                     table = [sensor_code]
                 else:  # 000
@@ -73,7 +76,6 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
     return JsonResponse(data=data)  # 对象
 
 
-
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
     # http://10.21.1.106:8000/app/operation/?region=地区&status=设备状态&client_unit=客户单位&page=2&size=2
     if request.method == "GET":
@@ -87,22 +89,22 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
         sql_1 = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
+                "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
         a = "region=%s"
         b = "status=%s"
         c = "client_unit=%s"
         if region:
             if status:
                 if client_unit:
-                    sql = sql_1 + " where "+a+" and "+b+" and "+c
+                    sql = sql_1 + " where " + a + " and " + b + " and " + c
                     table = [region, status, client_unit]
                 else:
-                    sql = sql_1 + " where "+a+" and "+b
+                    sql = sql_1 + " where " + a + " and " + b
                     table = [region, status]
             else:
                 if client_unit:
-                    sql = sql_1 + " where "+a+" and "+c
+                    sql = sql_1 + " where " + a + " and " + c
                     table = [region, client_unit]
                 else:
                     sql = sql_1 + " where " + a
@@ -152,7 +154,8 @@ def equipmentmaintenance(request):
                 size = 5
         if begin_time is None or end_time is None:  # 自定义时间范围查找
             if maintain_cause:  # 通过维护原因查找
-                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
+                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(
+                    maintain_cause=maintain_cause)
             else:  # 无条件查找
                 que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id)
         else:
@@ -160,7 +163,8 @@ def equipmentmaintenance(request):
                 que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(
                     repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
             else:  # 通过时间范围查找
-                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(repair_time__gte=begin_time).filter(repair_time__lte=end_time)
+                que = EquipmentMaintenance.objects.filter(equipment_id=equipment_id).filter(
+                    repair_time__gte=begin_time).filter(repair_time__lte=end_time)
         num = len(que)  # 共计几个对象
         serializer = EquipmentMaintenanceSerializer(instance=que, many=True)  # 利用序列化器将查询集转化为有序字典
         data_1 = serializer.data
@@ -171,6 +175,7 @@ def equipmentmaintenance(request):
             "data": list(data_2)
         }
     return JsonResponse(data=data)
+
 
 # 每个用户对应的各个联系人的信息查询
 def clientcontactpeople(request):
@@ -194,6 +199,7 @@ def clientcontactpeople(request):
         }
     return JsonResponse(data=data)
 
+
 # 实时监控接口
 def real_time_monitoring(request):
     if request.method == 'GET':
@@ -205,8 +211,8 @@ def real_time_monitoring(request):
                 page = 1
                 size = 5
         sql = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
-                "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
+              "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+              "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
         table = [equipment_id]
         result = maintenances(sql, table)
         num = len(result)  # 共计几个对象
@@ -231,6 +237,7 @@ def sensortype(request):
             data.append(data_1)
     return JsonResponse(data=data, safe=False)
 
+
 # 用于获取对应传感器类型下的传感器型号和型号id
 def sensortypetomodel(request):
     if request.method == 'GET':
@@ -250,6 +257,7 @@ def sensortypetomodel(request):
 
     return JsonResponse(data=data_2, safe=False)
 
+
 # 设备信息页面的查询和搜索
 def equipmenttoenginename(request):
     # http://10.21.1.106:8000/app/equipment_to_engine_name/?engine_code=&equipment_code=&currentPage=&size=
@@ -263,13 +271,13 @@ def equipmenttoenginename(request):
                 page = 1
                 size = 5
         sql_1 = "SELECT * from (SELECT equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name " \
-              "FROM equipment INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
+                "FROM equipment INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
         a = "engine_code = %s"
         b = "equipment_code = %s"
         if engine_code:
             if equipment_code:  # 11
-                sql = sql_1 + " where "+a+" and "+b
-                table = [engine_code,equipment_code]
+                sql = sql_1 + " where " + a + " and " + b
+                table = [engine_code, equipment_code]
             else:  # 10
                 sql = sql_1 + " where " + a
                 table = [engine_code]
@@ -295,6 +303,7 @@ def equipmenttoenginename(request):
 
         return JsonResponse(data=data)
 
+
 # 设备表、传感器表、传感器类型表、传感器型号表四表级联
 # 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型
 def equipmenttosensor3(request):
@@ -309,15 +318,15 @@ def equipmenttosensor3(request):
                 size = 5
         a = 'equipment_id=%s'
         sql_1 = "SELECT * from (SELECT sensor.sensor_code,sensor_model.sensor_model,sensor_type.type_name,equipment_and_sensor.equipment_id " \
-              "FROM equipment_and_sensor " \
-              "INNER JOIN sensor " \
-              "ON equipment_and_sensor.sensor_id=sensor.aid " \
-              "INNER JOIN sensor_model " \
-              "ON sensor.sensor_model_id=sensor_model.aid " \
-              "INNER JOIN sensor_type " \
-              "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
+                "FROM equipment_and_sensor " \
+                "INNER JOIN sensor " \
+                "ON equipment_and_sensor.sensor_id=sensor.aid " \
+                "INNER JOIN sensor_model " \
+                "ON sensor.sensor_model_id=sensor_model.aid " \
+                "INNER JOIN sensor_type " \
+                "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
         if equipment_id:
-            sql = sql_1+" where "+a
+            sql = sql_1 + " where " + a
             table = [equipment_id]
         else:
             sql = sql_1

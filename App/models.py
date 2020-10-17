@@ -77,7 +77,6 @@ class EnterpriseAccount(models.Model):
         db_table = 'enterprise_account'
 
 
-
 class Equipment(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     equipment_code = models.CharField(max_length=50)
@@ -191,7 +190,6 @@ class Sensor(models.Model):
     default_compensation = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
 
-
     class Meta:
         managed = False
         db_table = 'sensor'
@@ -203,6 +201,8 @@ class SensorCalibration(models.Model):
     calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
     calibrate_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
+    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
+    actual_value = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -234,6 +234,7 @@ class SensorType(models.Model):
 
 class WaterQualityNotice(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
+    sensor_id = models.CharField(max_length=255, blank=True, null=True)
     target = models.CharField(max_length=50)
     measurement = models.CharField(max_length=50)
     notice_time = models.CharField(max_length=50)
@@ -249,9 +250,13 @@ class SensorCalibration(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_id = models.CharField(max_length=255, blank=True, null=True)
     calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
-    calibrate_time = models.DateField(auto_now_add=True)
-    remark = models.CharField(max_length=50)
+    calibrate_time = models.DateField(blank=True, null=True)
+    remark = models.CharField(max_length=50, blank=True, null=True)
+    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
+    actual_value = models.CharField(max_length=50, blank=True, null=True)
+    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'sensor_calibration'
+
