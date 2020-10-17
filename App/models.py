@@ -85,8 +85,8 @@ class Equipment(models.Model):
     storage_location = models.CharField(max_length=50)
     note = models.CharField(max_length=255, blank=True, null=True)
     equip_person = models.CharField(max_length=50)
-    create_time = models.DateTimeField()
-    alert_time = models.DateTimeField()
+    create_time = models.DateTimeField(auto_now_add=True)
+    alert_time = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50)
 
     class Meta:
@@ -249,12 +249,12 @@ class WaterQualityNotice(models.Model):
 class SensorCalibration(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_id = models.CharField(max_length=255, blank=True, null=True)
+    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
+    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
+    actual_value = models.CharField(max_length=50, blank=True, null=True)
     calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
     calibrate_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
-    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
-    actual_value = models.CharField(max_length=50, blank=True, null=True)
-    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False

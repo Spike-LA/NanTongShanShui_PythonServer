@@ -51,11 +51,13 @@ urlpatterns = [
     path('operation/', views.operation, name='operation'),  # 设备、调拨、客户连表路由
     path('maintenance/', views.equipmentmaintenance, name='equipment_maintenance'),  # 单个设备的维护报修记录
     path('ClientContactPeople/', views.clientcontactpeople, name='clientcontactperson'),  # 每个用户对应的联系人查询
-    path('real_time_monitoring/', views.real_time_monitoring, name='real_time_monitoring'),
-    path('sensor_type/', views.sensortype, name ='sensor_type'),
+    path('real_time_monitoring_high/', views.real_time_monitoring_high, name='real_time_monitoring_high'),
+    path('real_time_monitoring_down/', views.real_time_monitoring_down, name='real_time_monitoring_down'),
+    path('sensor_type/', views.sensortype, name='sensor_type'),
     path('sensor_type_to_model/', views.sensortypetomodel, name='sensor_type_to_model'),
     path('equipment_to_engine_name/', views.equipmenttoenginename, name='equipment_to_engine_name'),
-    path('equipment_to_sensor3/', views.equipmenttosensor3, name='equipment_to_sensor3')
+    path('equipment_to_sensor3/', views.equipmenttosensor3, name='equipment_to_sensor3'),
+    path('sensor_model_to_code/', views.sensormodeltocode, name='sensor_model_to_code'),
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]
 

@@ -14,3 +14,5 @@ class ClientViewSet(viewsets.ModelViewSet):
     pagination_class = MyPageNumberPagination
     filter_backends = (DjangoFilterBackend,)
     filter_class = ClientFilter
+
+
