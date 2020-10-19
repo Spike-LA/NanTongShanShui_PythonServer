@@ -75,7 +75,6 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
     return JsonResponse(data=data)  # 对象
 
 
-
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
     # http://10.21.1.106:8000/app/operation/?region=地区&status=设备状态&client_unit=客户单位&page=2&size=2
     if request.method == "GET":
