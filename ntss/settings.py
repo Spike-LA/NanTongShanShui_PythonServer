@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'App.apps.AppConfig',
     'rest_framework',
+    'influxdb_metrics',
     'django_filters',
     'corsheaders',
 ]
@@ -53,6 +54,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+INFLUXDB_HOST = "122.51.173.123"
+INFLUXDB_PORT = "8086"
+INFLUXDB_USER = "root"
+INFLUXDB_PASSWORD = "root"
+INFLUXDB_DATABASE = "testDB"
+
+INFLUXDB_TIMEOUT = 5
 
 ROOT_URLCONF = 'ntss.urls'
 
