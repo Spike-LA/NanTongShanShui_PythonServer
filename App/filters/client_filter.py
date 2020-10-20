@@ -7,4 +7,4 @@ class ClientFilter(django_filters.FilterSet):
 
     class Meta:
         model = Client
-        fields = ['client_unit']
+        fields = ['client_unit', 'aid']

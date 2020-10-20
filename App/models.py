@@ -260,3 +260,49 @@ class SensorCalibration(models.Model):
         managed = False
         db_table = 'sensor_calibration'
 
+
+class User(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    name = models.CharField(max_length=50, blank=True, null=True)
+    account = models.CharField(max_length=50, blank=True, null=True)
+    password = models.CharField(max_length=50, blank=True, null=True)
+    telephone_num = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+    role_id = models.CharField(max_length=255, blank=True, null=True)
+    add_time = models.DateField(auto_now_add=True, blank=True, null=True)
+    add_by = models.CharField(max_length=50, blank=True, null=True)
+    mod_time = models.DateField(auto_now=True, blank=True, null=True)
+    mod_by = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'user'
+
+
+class Role(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    role_name = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'role'
+
+
+class Power(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    power = models.CharField(max_length=50, blank=True, null=True)
+    power_num = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'power'
+
+
+class PowerRelation(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    power_id = models.CharField(max_length=255, blank=True, null=True)
+    aim_id = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'power_relation'
