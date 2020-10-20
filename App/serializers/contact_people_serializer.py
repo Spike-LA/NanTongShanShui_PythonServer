@@ -26,3 +26,12 @@ class ContactPeopleSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+    def update(self, instance, validated_data):
+
+        instance.contact_person = validated_data.get('contact_person', instance.contact_person)
+        instance.contact_position = validated_data.get('contact_position', instance.contact_position)
+        instance.contact_tel = validated_data.get('contact_tel', instance.contact_tel)
+        instance.remark = validated_data.get('remark', instance.remark)
+        instance.save()
+        return instance

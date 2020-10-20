@@ -28,7 +28,7 @@ class Client(models.Model):
 class ContactPeople(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     contact_person = models.CharField(max_length=50)
-    client_id = models.CharField(max_length=255)
+    client_id = models.CharField(max_length=255, blank=True, null=True)
     contact_position = models.CharField(max_length=50)
     contact_tel = models.CharField(max_length=50)
     remark = models.CharField(max_length=255, blank=True, null=True)
@@ -36,45 +36,6 @@ class ContactPeople(models.Model):
     class Meta:
         managed = False
         db_table = 'contact_people'
-
-
-class CustomerAccount(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    account_id = models.CharField(max_length=50)
-    account_number = models.CharField(max_length=50)
-    account_password = models.CharField(max_length=50)
-    customer_id = models.CharField(max_length=255)
-    role = models.CharField(max_length=50, blank=True, null=True)
-    role_number = models.CharField(max_length=50, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
-    add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True, auto_now=True)
-    mod_by = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'customer_account'
-
-
-class EnterpriseAccount(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    account_id = models.CharField(max_length=50, blank=True, null=True)
-    enterprise_number = models.CharField(max_length=50, blank=True, null=True)
-    account_password = models.CharField(max_length=50, blank=True, null=True)
-    telephone_number = models.CharField(max_length=50, blank=True, null=True)
-    position = models.CharField(max_length=50, blank=True, null=True)
-    role = models.CharField(max_length=50, blank=True, null=True)
-    role_number = models.CharField(max_length=50, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
-    add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True, auto_now=True)
-    mod_by = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'enterprise_account'
 
 
 class Equipment(models.Model):
@@ -85,23 +46,13 @@ class Equipment(models.Model):
     storage_location = models.CharField(max_length=50)
     note = models.CharField(max_length=255, blank=True, null=True)
     equip_person = models.CharField(max_length=50)
-    create_time = models.DateTimeField(auto_now_add=True)
-    alert_time = models.DateTimeField(auto_now=True)
+    create_time = models.DateTimeField()
+    alert_time = models.DateTimeField()
     status = models.CharField(max_length=50)
 
     class Meta:
         managed = False
         db_table = 'equipment'
-
-
-class EquipmentAndSensor(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    equipment_id = models.CharField(max_length=255)
-    sensor_id = models.CharField(max_length=255)
-
-    class Meta:
-        managed = False
-        db_table = 'equipment_and_sensor'
 
 
 class EquipmentAllocation(models.Model):
@@ -127,10 +78,20 @@ class EquipmentAllocation(models.Model):
         db_table = 'equipment_allocation'
 
 
+class EquipmentAndSensor(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    equipment_id = models.CharField(max_length=255)
+    sensor_id = models.CharField(max_length=255)
+
+    class Meta:
+        managed = False
+        db_table = 'equipment_and_sensor'
+
+
 class EquipmentMaintenance(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     equipment_id = models.CharField(max_length=255, blank=True, null=True)
-    repair_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    repair_time = models.DateField(blank=True, null=True)
     maintain_time = models.DateField(blank=True, null=True)
     maintain_cause = models.CharField(max_length=255, blank=True, null=True)
     fault_description = models.CharField(max_length=255, blank=True, null=True)
@@ -149,6 +110,8 @@ class EquipmentScrap(models.Model):
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
     equipment_id = models.CharField(max_length=255, blank=True, null=True)
+    equipment_number = models.CharField(max_length=50)
+    equipment_remark = models.CharField(max_length=50, blank=True, null=True)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
@@ -178,21 +141,65 @@ class MainEngine(models.Model):
         db_table = 'main_engine'
 
 
+class Power(models.Model):
+    aid = models.IntegerField(primary_key=True)
+    power = models.CharField(max_length=50, blank=True, null=True)
+    power_num = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'power'
+
+
+class PowerRelation(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    power_id = models.CharField(max_length=255, blank=True, null=True)
+    user_id = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'power_relation'
+
+
+class Role(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    role_name = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'role'
+
+
 class Sensor(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_model_id = models.CharField(max_length=255, blank=True, null=True)
+    sensor_code = models.CharField(max_length=50)
+    create_time = models.DateField()
+    alert_time = models.DateField()
+    default_compensation = models.CharField(max_length=50, blank=True, null=True)
+    note = models.CharField(max_length=255, blank=True, null=True)
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
-    sensor_code = models.CharField(max_length=50)
-    default_compensation = models.CharField(max_length=50, blank=True, null=True)
-    create_time = models.DateField(auto_now_add=True)
-    alert_time = models.DateField(auto_now=True)
-    note = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'sensor'
+
+
+class SensorCalibration(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    sensor_id = models.CharField(max_length=255, blank=True, null=True)
+    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
+    actual_value = models.CharField(max_length=50, blank=True, null=True)
+    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
+    calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
+    calibrate_time = models.DateField(blank=True, null=True)
+    remark = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'sensor_calibration'
 
 
 class SensorModel(models.Model):
@@ -201,7 +208,7 @@ class SensorModel(models.Model):
     sensor_model = models.CharField(max_length=50)
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
-    create_time = models.DateField(auto_now_add=True)
+    create_time = models.DateField()
 
     class Meta:
         managed = False
@@ -211,37 +218,39 @@ class SensorModel(models.Model):
 class SensorType(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     type_name = models.CharField(max_length=50)
-    create_time = models.DateField(auto_now_add=True)
+    create_time = models.DateField()
 
     class Meta:
         managed = False
         db_table = 'sensor_type'
 
 
+class User(models.Model):
+    aid = models.CharField(primary_key=True, max_length=255)
+    name = models.CharField(max_length=50, blank=True, null=True)
+    account = models.CharField(max_length=50, blank=True, null=True)
+    password = models.CharField(max_length=50, blank=True, null=True)
+    telephone_num = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+    role_id = models.CharField(max_length=255, blank=True, null=True)
+    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    add_by = models.CharField(max_length=50, blank=True, null=True)
+    mod_time = models.DateField(blank=True, null=True, auto_now=True)
+    mod_by = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'user'
+
+
 class WaterQualityNotice(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    sensor_id = models.CharField(max_length=255, blank=True)
-    target = models.CharField(max_length=50)
-    measurement = models.CharField(max_length=50)
-    notice_time = models.CharField(max_length=50)
-    deal_time = models.CharField(max_length=50)
-    deal_status = models.CharField(max_length=50)
+    sensor_id = models.CharField(max_length=255, blank=True, null=True)
+    measurement = models.CharField(max_length=50, blank=True, null=True)
+    notice_time = models.DateTimeField(blank=True, null=True)
+    deal_time = models.DateTimeField(blank=True, null=True)
+    deal_status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'water_quality_notice'
-
-
-class SensorCalibration(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    sensor_id = models.CharField(max_length=255, blank=True, null=True)
-    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
-    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
-    actual_value = models.CharField(max_length=50, blank=True, null=True)
-    calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
-    calibrate_time = models.DateField()
-    remark = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'sensor_calibration'

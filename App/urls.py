@@ -19,8 +19,6 @@ from rest_framework.routers import DefaultRouter
 from App import views
 from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
-from App.views.customer_account import CustomerAccountViewSet
-from App.views.enterprise_account import EnterpriseAccountViewSet
 from App.views.equipment import EquipmentViewSet
 from App.views.equipment_allocation import EquipmentAllocationViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
@@ -28,6 +26,7 @@ from App.views.main_engine import MainEngineViewSet
 from App.views.sensor import SensorViewSet
 from App.views.sensor_model import SensorModelViewSet
 from App.views.sensor_type import SensorTypeViewSet
+from App.views.user import UserViewSet
 
 router = DefaultRouter()
 
@@ -40,9 +39,7 @@ router.register('contact_people', ContactPeopleViewSet)
 router.register('equipment_allocation', EquipmentAllocationViewSet)
 router.register('equipment_maintenance', EquipmentMaintenanceViewSet)
 router.register('sensor', SensorViewSet)
-router.register('enterprise_account', EnterpriseAccountViewSet)
-router.register('customer_account', CustomerAccountViewSet)
-
+router.register('user', UserViewSet)
 
 app_name = "App"
 
@@ -58,6 +55,11 @@ urlpatterns = [
     path('equipment_to_engine_name/', views.equipmenttoenginename, name='equipment_to_engine_name'),
     path('equipment_to_sensor3/', views.equipmenttosensor3, name='equipment_to_sensor3'),
     path('sensor_model_to_code/', views.sensormodeltocode, name='sensor_model_to_code'),
+    path('deviceNum_to_typename/', views.deviceNumtotypename, name='deviceNum_to_typename'),
+    path('water_quality_notice/', views.waterqualitynotice, name='water_quality_notice'),
+    path('main_engine_code_and_name/', views.mainenginecodeandname, name='main_engine_code_and_name'),
+    path('equipment_detail/', views.equipmentdetail, name='equipment_detail'),
+    path('login_in/', views.loginin, name='login_in'),
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]
 

@@ -1,12 +1,14 @@
 import datetime
+import uuid
 
 from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponse
-from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from influxdb_metrics.utils import query
 
 from App.functions.condition_search import maintenances, maintenance
-from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor
+from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor, Equipment, \
+    EquipmentAndSensor, MainEngine, User
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
 from App.serializers.sensor_serializer import SensorSerializer
@@ -235,7 +237,7 @@ def real_time_monitoring_high(request):
             page = 1
             size = 5
         sql = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
-                "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                "client.region,equipment_allocation.client_id FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                 "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
         table = [equipment_id]
         result = maintenances(sql, table)
@@ -263,6 +265,7 @@ def sensortype(request):
 
 # 用于获取对应传感器类型下的传感器型号和型号id
 def sensortypetomodel(request):
+    # http://10.21.1.106:8000/app/sensor_type_to_model/?type_name=
     if request.method == 'GET':
         type_name = request.GET.get('type_name')
         queryset_1 = SensorType.objects.filter(type_name=type_name)
@@ -328,7 +331,7 @@ def equipmenttoenginename(request):
         return JsonResponse(data=data)
 
 # 设备表、传感器表、传感器类型表、传感器型号表四表级联
-# 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型
+# 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
 def equipmenttosensor3(request):
     # http://10.21.1.106:8000/app/equipment_to_sensor3/?equipment_id=&currentPage=&size=
     if request.method == 'GET':
@@ -342,7 +345,7 @@ def equipmenttosensor3(request):
             page = 1
             size = 5
         a = 'equipment_id=%s'
-        sql_1 = "SELECT * from (SELECT sensor.sensor_code,sensor_model.sensor_model,sensor_type.type_name,equipment_and_sensor.equipment_id " \
+        sql_1 = "SELECT * from (SELECT sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
               "FROM equipment_and_sensor " \
               "INNER JOIN sensor " \
               "ON equipment_and_sensor.sensor_id=sensor.aid " \
@@ -384,7 +387,7 @@ def real_time_monitoring_down(request):
             if not end_time_first:
                 # begin_time_first = str(today)
                 # end_time_first = str(tomorrow)
-                # 数据库只有10月10号的数据
+                # 数据库只有10月10号的数据,之后完成的时候是用上面两行代码
                 begin_time_first = '2020-10-10'
                 end_time_first = '2020-10-11'
         begin_time = begin_time_first + time
@@ -393,15 +396,187 @@ def real_time_monitoring_down(request):
         sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (deviceNum, begin_time, end_time)
         print(sql)
         data = query(sql)
-        for i in data:
-            result_list = i
-            return JsonResponse(data=result_list, safe=False)
+        if data:
+            for result_list in data:
+                return JsonResponse(data=result_list, safe=False)
+        else:
+            table = []
+            return JsonResponse(data=table, safe=False)
 
 # 通过传感器型号aid给前端发送对应的传感器的全局id和编码
 def sensormodeltocode(request):
+    # http://10.21.1.106:8000/app/sensor_model_to_code/?sensor_model_id=
     if request.method == "GET":
         sensor_model_id = request.GET.get('sensor_model_id')
         que = Sensor.objects.filter(sensor_model_id=sensor_model_id)
         serializer = SensorSerializer(instance=que, many=True)
         data = serializer.data
+    return JsonResponse(data=data, safe=False)
+
+# 通过设备编码获取对应设备上的传感器
+def deviceNumtotypename(request):
+    # http://10.21.1.106:8000/app/deviceNum_to_typename/?deviceNum=
+    if request.method == 'GET':
+        equipment_code = request.GET.get('deviceNum')
+        query_1 = Equipment.objects.filter(equipment_code=equipment_code).first()  # 通过设备编号查到该设备对象
+        query_2 = EquipmentAndSensor.objects.filter(equipment_id=query_1.aid)
+        table_1 = []
+        for obj_1 in query_2:
+            table_1.append(obj_1.sensor_id)   # 获取该设备上的各个传感器id
+        print(table_1)
+        sql = "SELECT * FROM (SELECT sensor.aid,sensor_type.type_name FROM sensor " \
+              "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+              "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid) AS a where aid=%s"
+        data = []
+        for obj_2 in table_1:
+            results = maintenances(sql, obj_2)
+            data.append(results[0])
+        return JsonResponse(data=data, safe=False)
+
+# 水质记录查询
+def waterqualitynotice(request):
+    # http://10.21.1.106:8000/app/water_quality_notice/?currentPage=2&size=5&equipment_id=
+    if request.method == 'GET':
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        equipment_id = request.GET.get('equipment_id')
+        type_name = request.GET.get('type_name')
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        time_second = 'T00:00:00'
+        if begin_time_first:
+            begin_time = begin_time_first+time_second
+        if end_time_first:
+            end_time = end_time_first+time_second
+        a = 'notice_time >= %s'
+        b = 'notice_time <= %s'
+        c = 'type_name = %s'
+
+        sql_first = "SELECT * FROM (SELECT equipment_id,measurement,water_quality_notice.sensor_id,type_name,sensor.notice_content,water_quality_notice.notice_time " \
+              "FROM water_quality_notice " \
+              "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
+              "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+              "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid " \
+              "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
+              "INNER JOIN equipment ON equipment.aid=equipment_and_sensor.equipment_id) AS a WHERE equipment_id=%s"
+
+        if not equipment_id:
+            data = {
+                'msg': '未发送唯一标识'
+            }
+            return JsonResponse(data=data)
+
+        if begin_time_first:
+            if end_time_first:
+                if type_name:  # 111
+                    sql = sql_first+' and '+a +' and '+b+' and '+c
+                    table = [equipment_id, begin_time, end_time, type_name]
+                else:  # 110
+                    sql = sql_first + ' and ' + a + ' and ' + b
+                    table = [equipment_id, begin_time, end_time]
+            else:
+                if type_name: # 101
+                    sql = sql_first + ' and ' + a + ' and ' + c
+                    table = [equipment_id, begin_time, type_name]
+                else:  # 100
+                    sql = sql_first + ' and ' + a
+                    table = [equipment_id, begin_time]
+        else:
+            if end_time_first:
+                if type_name: # 011
+                    sql = sql_first +' and ' + b + ' and ' + c
+                    table = [equipment_id, end_time, type_name]
+                else:  # 010
+                    sql = sql_first +' and ' + b
+                    table = [equipment_id, end_time]
+            else:
+                if type_name:  # 001
+                    sql = sql_first +' and '+c
+                    table = [equipment_id, type_name]
+                else:  # 000
+                    sql = sql_first
+                    table = [equipment_id]
+
+
+        results = maintenances(sql, table)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)
+        }
+        return JsonResponse(data=data)
+
+
+# 给前端传输所有主机编号都主机名称
+def mainenginecodeandname(request):
+    # http://10.21.1.106:8000/app/equipment_detail/
+    if request.method == 'GET':
+        query = MainEngine.objects.all()
+        table = []
+        for obj in query:
+            dic = {}
+            dic['engine_name'] = obj.engine_name
+            dic['engine_code'] = obj.engine_code
+            table.append(dic)
+    return JsonResponse(data=table, safe=False)
+
+# 实时监控界面的设备详情弹窗
+def equipmentdetail(request):
+    # http://10.21.1.106:8000/app/equipment_detail/?equipment_id =
+    if request.method == 'GET':
+        equipment_id = request.GET.get('equipment_id')
+
+        if equipment_id:
+            sql = "SELECT * FROM (SELECT equipment_and_sensor.equipment_id,main_engine.engine_code,main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel,sensor_type.type_name,sensor_model.sensor_model " \
+                  "FROM main_engine INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code " \
+                  "INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                  "INNER JOIN client ON equipment_allocation.client_id=client.aid " \
+                  "INNER JOIN contact_people ON client.aid=contact_people.client_id " \
+                  "INNER JOIN equipment_and_sensor ON equipment.aid=equipment_and_sensor.equipment_id " \
+                  "INNER JOIN sensor ON equipment_and_sensor.sensor_id=sensor.aid " \
+                  "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+                  "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid) AS a WHERE equipment_id=%s"
+            table = [equipment_id]
+            data = maintenances(sql, table)
+            if len(data) > 0:
+                return JsonResponse(data=data, safe=False)
+            else:
+                data = {
+                    'msg': '设备标识不正确'
+                }
+                return JsonResponse(data=data)
+        else:
+            data = {
+                'msg': '未发送设备唯一标识'
+            }
+            return JsonResponse(data=data)
+
+@csrf_exempt
+def loginin(request):
+    if request.method == 'POST':
+        account = request.POST.get('account')
+        password = request.POST.get('password')
+        obj = User.objects.filter(account=account).first()
+        if obj:  # 账户存在
+            if obj.password == password:  # 账户存在且密码正确
+                data = {
+                    'msg': '登陆成功',
+                }
+            else:  # 账户存在但密码不正确
+                data = {
+                    'msg': '密码不正确',
+                }
+        else:  # 账户不存在
+            data = {
+                'msg': '账户名不存在',
+            }
+
     return JsonResponse(data=data, safe=False)

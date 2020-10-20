@@ -41,7 +41,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'corsheaders',
+    'influxdb_metrics',
 ]
+
+INFLUXDB_HOST = "122.51.173.123"
+INFLUXDB_PORT = "8086"  # 8084
+INFLUXDB_USER = "root"
+INFLUXDB_PASSWORD = "root"
+INFLUXDB_DATABASE = "testDB"
+
+INFLUXDB_TIMEOUT = 5
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -136,3 +145,4 @@ CORS_ORIGIN_ALLOW_ALL = True
 REST_FRAMEWORK = {
  'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
+
