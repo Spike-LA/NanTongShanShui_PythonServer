@@ -32,6 +32,8 @@ class EquipmentSerializer(serializers.ModelSerializer):
         instance.note = validated_data.get('note')
         instance.equip_person = validated_data.get('equip_person')
         instance.status = validated_data.get('status')
+        instance.create_time = validated_data.get('create_time')
+        instance.alert_time = validated_data.get('alert_time')
 
         instance.save()
 
