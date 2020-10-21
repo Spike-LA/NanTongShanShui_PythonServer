@@ -17,7 +17,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
         fields = '__all__'  # 显示所需要的字段#     #'__all__'显示全部的字段#
 
-        read_only_fields = ('aid',)
+        read_only_fields = ('aid','create_time', 'alert_time')
 
     def create(self, validated_data):  # 需要自定义创建内容时自行创建create方法#
         print(validated_data.get('equipment_sensor'))
@@ -32,8 +32,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         instance.note = validated_data.get('note')
         instance.equip_person = validated_data.get('equip_person')
         instance.status = validated_data.get('status')
-        instance.create_time = validated_data.get('create_time')
-        instance.alert_time = validated_data.get('alert_time')
+
 
         instance.save()
 
