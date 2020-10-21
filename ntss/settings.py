@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'influxdb_metrics',
     'django_filters',
     'corsheaders',
-    'influxdb_metrics',
 ]
 
 INFLUXDB_HOST = "122.51.173.123"
@@ -64,13 +63,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-INFLUXDB_HOST = "122.51.173.123"
-INFLUXDB_PORT = "8086"
-INFLUXDB_USER = "root"
-INFLUXDB_PASSWORD = "root"
-INFLUXDB_DATABASE = "testDB"
-
-INFLUXDB_TIMEOUT = 5
 
 ROOT_URLCONF = 'ntss.urls'
 
@@ -101,9 +93,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ntss',
-        'HOST': 'localhost',
+        'HOST': '10.21.1.58',
         'USER': 'root',
-        'PASSWORD': '123456',
+        'PASSWORD': 'root',
         'PORT': 3306,
     }
 }
