@@ -21,10 +21,12 @@ from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
 from App.views.equipment import EquipmentViewSet
 from App.views.equipment_allocation import EquipmentAllocationViewSet
+from App.views.equipment_calibration import EquipmentCalibrationViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.power import PowerViewSet
-from App.views.power_role import PowerRoleViewSet
+from App.views.power_relation import PowerRelationViewSet
+
 from App.views.role import RoleViewSet
 from App.views.sensor import SensorViewSet
 from App.views.sensor_model import SensorModelViewSet
@@ -44,9 +46,9 @@ router.register('equipment_maintenance', EquipmentMaintenanceViewSet)
 router.register('sensor', SensorViewSet)
 router.register('role', RoleViewSet)
 router.register('power', PowerViewSet)
-router.register('power_role', PowerRoleViewSet)
+router.register('power_role', PowerRelationViewSet)
 router.register('user', UserViewSet)
-
+router.register('equipment_calibration', EquipmentCalibrationViewSet)
 
 app_name = "App"
 
@@ -67,6 +69,8 @@ urlpatterns = [
     path('main_engine_code_and_name/', views.mainenginecodeandname, name='main_engine_code_and_name'),
     path('equipment_detail/', views.equipmentdetail, name='equipment_detail'),
     path('login_in/', views.loginin, name='login_in'),
+    path('verify/', views.verify, name='verify'),
+    path('sensor_calibration_retrieve/', views.sensorcalibrationretrieve, name='sensor_calibration_retrieve'),
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]
 

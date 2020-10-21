@@ -46,8 +46,8 @@ class Equipment(models.Model):
     storage_location = models.CharField(max_length=50)
     note = models.CharField(max_length=255, blank=True, null=True)
     equip_person = models.CharField(max_length=50)
-    create_time = models.DateTimeField()
-    alert_time = models.DateTimeField()
+    create_time = models.DateTimeField(auto_now_add=True)
+    alert_time = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=50)
 
     class Meta:
@@ -141,35 +141,6 @@ class MainEngine(models.Model):
         db_table = 'main_engine'
 
 
-class Power(models.Model):
-    aid = models.IntegerField(primary_key=True)
-    power = models.CharField(max_length=50, blank=True, null=True)
-    power_num = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'power'
-
-
-class PowerRelation(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    power_id = models.CharField(max_length=255, blank=True, null=True)
-    user_id = models.CharField(max_length=255, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'power_relation'
-
-
-class Role(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    role_name = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'role'
-
-
 class Sensor(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_model_id = models.CharField(max_length=255, blank=True, null=True)
@@ -178,6 +149,7 @@ class Sensor(models.Model):
     alert_time = models.DateField(auto_now=True)
     note = models.CharField(max_length=255, blank=True, null=True)
     default_compensation = models.CharField(max_length=50, blank=True, null=True)
+    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
@@ -190,13 +162,10 @@ class Sensor(models.Model):
 class SensorCalibration(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_id = models.CharField(max_length=255, blank=True, null=True)
-    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
     actual_value = models.CharField(max_length=50, blank=True, null=True)
-    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
     calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
-    calibrate_time = models.DateField(blank=True, null=True)
+    calibrate_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
-
 
     class Meta:
         managed = False
@@ -226,24 +195,6 @@ class SensorType(models.Model):
         db_table = 'sensor_type'
 
 
-class User(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    name = models.CharField(max_length=50, blank=True, null=True)
-    account = models.CharField(max_length=50, blank=True, null=True)
-    password = models.CharField(max_length=50, blank=True, null=True)
-    telephone_num = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
-    role_id = models.CharField(max_length=255, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
-    add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True, auto_now=True)
-    mod_by = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'user'
-
-
 class WaterQualityNotice(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_id = models.CharField(max_length=255, blank=True, null=True)
@@ -262,7 +213,7 @@ class WaterQualityNotice(models.Model):
 class User(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     name = models.CharField(max_length=50, blank=True, null=True)
-    account = models.CharField(max_length=50, blank=True, null=True)
+    account = models.CharField(max_length=50, blank=True, null=True, unique=True)
     password = models.CharField(max_length=50, blank=True, null=True)
     telephone_num = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)

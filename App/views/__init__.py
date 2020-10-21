@@ -8,7 +8,7 @@ from influxdb_metrics.utils import query
 
 from App.functions.condition_search import maintenances, maintenance
 from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor, Equipment, \
-    EquipmentAndSensor, MainEngine, User
+    EquipmentAndSensor, MainEngine, User, Role, PowerRelation, Power
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
 from App.serializers.sensor_serializer import SensorSerializer
@@ -413,7 +413,7 @@ def sensormodeltocode(request):
         data = serializer.data
     return JsonResponse(data=data, safe=False)
 
-# 通过设备编码获取对应设备上的传感器
+# 通过设备编码获取对应设备上的传感器的aid,类型,标定理论值
 def deviceNumtotypename(request):
     # http://10.21.1.106:8000/app/deviceNum_to_typename/?deviceNum=
     if request.method == 'GET':
@@ -424,9 +424,13 @@ def deviceNumtotypename(request):
         for obj_1 in query_2:
             table_1.append(obj_1.sensor_id)   # 获取该设备上的各个传感器id
         print(table_1)
-        sql = "SELECT * FROM (SELECT sensor.aid,sensor_type.type_name FROM sensor " \
+
+        sql = "SELECT * FROM (SELECT sensor.aid,sensor_type.type_name ,sensor.theoretical_value " \
+              "FROM sensor " \
               "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
-              "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid) AS a where aid=%s"
+              "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid ) " \
+              "AS a where aid=%s"
+
         data = []
         for obj_2 in table_1:
             results = maintenances(sql, obj_2)
@@ -449,11 +453,12 @@ def waterqualitynotice(request):
         type_name = request.GET.get('type_name')
         begin_time_first = request.GET.get('begin_time')
         end_time_first = request.GET.get('end_time')
-        time_second = 'T00:00:00'
+        time_second_first = 'T00:00:00'
+        time_second_end = 'T23:59:59'
         if begin_time_first:
-            begin_time = begin_time_first+time_second
+            begin_time = begin_time_first+time_second_first
         if end_time_first:
-            end_time = end_time_first+time_second
+            end_time = end_time_first+time_second_end
         a = 'notice_time >= %s'
         b = 'notice_time <= %s'
         c = 'type_name = %s'
@@ -517,7 +522,7 @@ def waterqualitynotice(request):
 
 # 给前端传输所有主机编号都主机名称
 def mainenginecodeandname(request):
-    # http://10.21.1.106:8000/app/equipment_detail/
+    # http://10.21.1.106:8000/app/main_engine_code_and_name/
     if request.method == 'GET':
         query = MainEngine.objects.all()
         table = []
@@ -561,13 +566,17 @@ def equipmentdetail(request):
 
 @csrf_exempt
 def loginin(request):
+    # http://127.0.0.1:8000/app/login_in/?account=&password=
     if request.method == 'POST':
         account = request.POST.get('account')
         password = request.POST.get('password')
         obj = User.objects.filter(account=account).first()
         if obj:  # 账户存在
             if obj.password == password:  # 账户存在且密码正确
+
                 data = {
+                    'user_id': obj.aid,
+                    'role_id': obj.role_id,
                     'msg': '登陆成功',
                 }
             else:  # 账户存在但密码不正确
@@ -580,3 +589,108 @@ def loginin(request):
             }
 
     return JsonResponse(data=data, safe=False)
+
+# 前端验证登陆状态时，返回给前端这个账号的所有权限别名
+def verify(request):
+    # http://127.0.0.1:8000/app/verify/?user_id=&role_id=
+    if request.method == 'GET':
+        user_id = request.GET.get('user_id')
+        role_id = request.GET.get('role_id')
+        query_role_power = PowerRelation.objects.filter(aim_id=role_id)
+        query_user_power = PowerRelation.objects.filter(aim_id=user_id)
+        list_power_id = []
+        list_power_num = []
+
+        for obj_1 in query_role_power:
+            list_power_id.append(obj_1.power_id)
+
+        for obj_2 in query_user_power:
+            list_power_id.append(obj_2.power_id)
+
+        for obj_3 in list_power_id:
+            query_power_object = Power.objects.filter(aid=obj_3).first()
+            list_power_num.append(query_power_object.power_num)
+
+        data = {
+            'count': len(list_power_num),
+            'power_num':list_power_num,
+        }
+
+    return JsonResponse(data=data, safe=False)
+
+# 通过前端发送的设备编号，将设备对应传感器的类型、标定时间、标定理论值、标定实际值返回给前端
+def sensorcalibrationretrieve(request):
+    # http: // 127.0.0.1:8000/app/sensor_calibration_retrieve/?deviceNum =110&currentPage=&size=&type_name=&begin_time=&end_time=
+    if request.method == 'GET':
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        equipment_code = request.GET.get('deviceNum')
+        type_name = request.GET.get('type_name')
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        time_second_begin = 'T00:00:00'
+        time_second_end = 'T23:59:59'
+        if begin_time_first:
+            begin_time = begin_time_first + time_second_begin
+        if end_time_first:
+            end_time = end_time_first + time_second_end
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        a = 'calibrate_time>%s'
+        b = 'calibrate_time<%s'
+        c = 'type_name=%s'
+
+        sql_1 = "SELECT * FROM (SELECT sensor_calibration.calibrate_time,sensor_calibration.actual_value,sensor.theoretical_value,sensor_type.type_name,equipment.equipment_code " \
+                "FROM sensor_calibration " \
+                "INNER JOIN sensor ON sensor_calibration.sensor_id=sensor.aid " \
+                "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+                "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid " \
+                "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
+                "INNER JOIN equipment ON equipment_and_sensor.equipment_id=equipment.aid) AS a WHERE equipment_code=%s"
+
+        if begin_time_first:
+            if end_time_first:
+                if type_name:  # 111
+                    sql = sql_1+' and '+a+' and '+b+' and '+c
+                    table = [equipment_code, begin_time, end_time, type_name]
+                else:  # 110
+                    sql = sql_1 + ' and ' + a + ' and ' + b
+                    table = [equipment_code, begin_time, end_time]
+            else:
+                if type_name: # 101
+                    sql = sql_1 + ' and ' + a + ' and ' + c
+                    table = [equipment_code, begin_time, type_name]
+                else:  # 100
+                    sql = sql_1 + ' and ' + a
+                    table = [equipment_code, begin_time]
+
+        else:
+            if end_time_first:
+                if type_name:  # 011
+                    sql = sql_1+' and '+b+' and '+c
+                    table = [equipment_code, end_time, type_name]
+                else:  # 010
+                    sql = sql_1 + ' and ' + b
+                    table = [equipment_code, end_time]
+            else:
+                if type_name:  # 001
+                    sql = sql_1 + ' and ' + c
+                    table = [equipment_code, type_name]
+                else:  # 000
+                    sql = sql_1
+                    table = [equipment_code]
+
+        results = maintenances(sql, table)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)
+        queryset = paginator.page(page)
+        data = {
+            "count": num,
+            "data": list(queryset)
+        }
+        return JsonResponse(data=data)  # 对象
+
