@@ -79,7 +79,6 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
     return JsonResponse(data=data)  # 对象
 
 
-
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
     # http://10.21.1.106:8000/app/operation/?region=地区&status=设备状态&client_unit=客户单位&page=2&size=2
     if request.method == "GET":
@@ -591,6 +590,7 @@ def loginin(request):
 
     return JsonResponse(data=data, safe=False)
 
+
 # 前端验证登陆状态时，返回给前端这个账号的所有权限别名
 def verify(request):
     # http://127.0.0.1:8000/app/verify/?user_id=&role_id=
@@ -614,10 +614,11 @@ def verify(request):
 
         data = {
             'count': len(list_power_num),
-            'power_num':list_power_num,
+            'power_num': list_power_num,
         }
 
     return JsonResponse(data=data, safe=False)
+
 
 # 通过前端发送的设备编号，将设备对应传感器的类型、标定时间、标定理论值、标定实际值返回给前端
 def sensorcalibrationretrieve(request):

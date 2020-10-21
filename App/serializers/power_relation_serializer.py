@@ -16,7 +16,7 @@ class PowerRelationSerializer(serializers.ModelSerializer):
         instance = PowerRelation()
         instance.aid = uuid.uuid4().hex
         instance.power_id = validated_data.get('power_id')
-        instance.role_id = validated_data.get('role_id')
+        instance.aim_id = validated_data.get('aim_id')
 
         instance.save()
         return instance

@@ -33,7 +33,6 @@ class EquipmentSerializer(serializers.ModelSerializer):
         instance.equip_person = validated_data.get('equip_person')
         instance.status = validated_data.get('status')
 
-
         instance.save()
 
         # 设备上的每个传感器id,前端传输格式为"12344,54321"
