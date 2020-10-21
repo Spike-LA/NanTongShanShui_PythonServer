@@ -141,35 +141,6 @@ class MainEngine(models.Model):
         db_table = 'main_engine'
 
 
-class Power(models.Model):
-    aid = models.IntegerField(primary_key=True)
-    power = models.CharField(max_length=50, blank=True, null=True)
-    power_num = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'power'
-
-
-class PowerRelation(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    power_id = models.CharField(max_length=255, blank=True, null=True)
-    user_id = models.CharField(max_length=255, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'power_relation'
-
-
-class Role(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    role_name = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'role'
-
-
 class Sensor(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_model_id = models.CharField(max_length=255, blank=True, null=True)
@@ -197,7 +168,6 @@ class SensorCalibration(models.Model):
     calibrate_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
 
-
     class Meta:
         managed = False
         db_table = 'sensor_calibration'
@@ -224,24 +194,6 @@ class SensorType(models.Model):
     class Meta:
         managed = False
         db_table = 'sensor_type'
-
-
-class User(models.Model):
-    aid = models.CharField(primary_key=True, max_length=255)
-    name = models.CharField(max_length=50, blank=True, null=True)
-    account = models.CharField(max_length=50, blank=True, null=True)
-    password = models.CharField(max_length=50, blank=True, null=True)
-    telephone_num = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
-    role_id = models.CharField(max_length=255, blank=True, null=True)
-    add_time = models.DateField(blank=True, null=True, auto_now_add=True)
-    add_by = models.CharField(max_length=50, blank=True, null=True)
-    mod_time = models.DateField(blank=True, null=True, auto_now=True)
-    mod_by = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'user'
 
 
 class WaterQualityNotice(models.Model):

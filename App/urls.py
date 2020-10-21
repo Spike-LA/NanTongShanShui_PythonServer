@@ -24,7 +24,7 @@ from App.views.equipment_allocation import EquipmentAllocationViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.power import PowerViewSet
-from App.views.power_role import PowerRoleViewSet
+from App.views.power_relation import PowerRelationViewSet
 from App.views.role import RoleViewSet
 from App.views.sensor import SensorViewSet
 from App.views.sensor_model import SensorModelViewSet
@@ -44,7 +44,7 @@ router.register('equipment_maintenance', EquipmentMaintenanceViewSet)
 router.register('sensor', SensorViewSet)
 router.register('role', RoleViewSet)
 router.register('power', PowerViewSet)
-router.register('power_role', PowerRoleViewSet)
+router.register('power_relation', PowerRelationViewSet)
 router.register('user', UserViewSet)
 
 
