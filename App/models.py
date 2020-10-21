@@ -91,8 +91,8 @@ class EquipmentAndSensor(models.Model):
 class EquipmentMaintenance(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     equipment_id = models.CharField(max_length=255, blank=True, null=True)
-    repair_time = models.DateField(blank=True, null=True)
-    maintain_time = models.DateField(blank=True, null=True)
+    repair_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    maintain_time = models.DateField(blank=True, null=True, auto_now=True)
     maintain_cause = models.CharField(max_length=255, blank=True, null=True)
     fault_description = models.CharField(max_length=255, blank=True, null=True)
     maintain_result = models.CharField(max_length=50, blank=True, null=True)
@@ -196,16 +196,14 @@ class SensorType(models.Model):
 class WaterQualityNotice(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_id = models.CharField(max_length=255, blank=True, null=True)
-    moment_measurements = models.CharField(max_length=50, blank=True, null=True)
-    theoretical_value = models.CharField(max_length=50, blank=True, null=True)
-    actual_value = models.CharField(max_length=50, blank=True, null=True)
-    calibrate_compensation = models.CharField(max_length=50, blank=True, null=True)
-    calibrate_time = models.DateField(blank=True, null=True)
-    remark = models.CharField(max_length=50, blank=True, null=True)
+    measurement = models.CharField(max_length=50, blank=True, null=True)
+    notice_time = models.DateTimeField(blank=True, null=True)
+    deal_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    deal_status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'sensor_calibration'
+        db_table = 'water_quality_notice'
 
 
 class User(models.Model):

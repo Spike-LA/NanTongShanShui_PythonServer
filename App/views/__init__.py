@@ -424,7 +424,7 @@ def deviceNumtotypename(request):
             table_1.append(obj_1.sensor_id)   # 获取该设备上的各个传感器id
         print(table_1)
 
-        sql = "SELECT * FROM (SELECT sensor.aid,sensor_type.type_name ,sensor.theoretical_value " \
+        sql = "SELECT * FROM (SELECT sensor.sensor_code,sensor.aid,sensor_type.type_name,sensor_model.sensor_model,sensor.theoretical_value " \
               "FROM sensor " \
               "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
               "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid ) " \
@@ -534,7 +534,7 @@ def mainenginecodeandname(request):
 
 # 实时监控界面的设备详情弹窗
 def equipmentdetail(request):
-    # http://10.21.1.106:8000/app/equipment_detail/?equipment_id =
+    # http://10.21.1.106:8000/app/equipment_detail/?equipment_id=
     if request.method == 'GET':
         equipment_id = request.GET.get('equipment_id')
 
@@ -642,8 +642,8 @@ def sensorcalibrationretrieve(request):
         if not size:
             page = 1
             size = 5
-        a = 'calibrate_time>%s'
-        b = 'calibrate_time<%s'
+        a = 'calibrate_time>=%s'
+        b = 'calibrate_time<=%s'
         c = 'type_name=%s'
 
         sql_1 = "SELECT * FROM (SELECT sensor_calibration.calibrate_time,sensor_calibration.actual_value,sensor_calibration.calibrate_compensation,sensor.theoretical_value,sensor_type.type_name,equipment.equipment_code " \
@@ -696,3 +696,93 @@ def sensorcalibrationretrieve(request):
         }
         return JsonResponse(data=data)  # 对象
 
+# 通过角色id查找角色对应的所有权限
+def rolepowers(request):
+    # http://10.21.1.106:8000/app/role_power/role_id=
+    if request.method == 'GET':
+        role_id = request.GET.get('role_id')
+        que = PowerRelation.objects.filter(aim_id=role_id)
+        power_list = []
+        power_num = []
+        for power_relation_obj in que:
+            power_list.append(power_relation_obj.power_id)
+        for power_obj in power_list:
+            obj = Power.objects.filter(aid=power_obj).first()
+            power_num.append(obj.power_num)
+
+        data = {
+            'count': len(power_num),
+            'data': power_num,
+        }
+
+    return JsonResponse(data=data, safe=False)
+
+
+# 通过设备id查找对应设备上传感器的水质提醒记录
+def waternoticeretrieve(request):
+    if request.method == 'GET':
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        equipment_id = request.GET.get('equipment_id')
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        time_second_begin = 'T00:00:00'
+        time_second_end = 'T23:59:59'
+        if begin_time_first:
+            begin_time = begin_time_first + time_second_begin
+        if end_time_first:
+            end_time = end_time_first + time_second_end
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        type_name = request.GET.get('type_name')
+        deal_status = request.GET.get('deal_status')
+        sql = "SELECT * FROM (SELECT water_quality_notice.aid,water_quality_notice.deal_status,water_quality_notice.notice_time,water_quality_notice.deal_time,sensor.notice_content,sensor_type.type_name, equipment_and_sensor.equipment_id " \
+                "FROM water_quality_notice " \
+                "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
+                "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+                "INNER JOIN sensor_type ON sensor_type.aid=sensor_model.sensor_type_id " \
+                "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
+                "INNER JOIN equipment ON equipment_and_sensor.equipment_id=equipment.aid) AS a WHERE equipment_id=%s"
+
+        a = 'notice_time>=%s'
+        b = 'notice_time<=%s'
+        c = 'type_name=%s'
+        d = 'deal_status=%s'
+        
+        child_sql = []
+        child_params = []
+        child_params.append(equipment_id)
+        if begin_time_first:
+            child_sql.append(a)
+            child_params.append(begin_time)
+        if end_time_first:
+            child_sql.append(b)
+            child_params.append(end_time)
+        if type_name:
+            child_sql.append(c)
+            child_params.append(type_name)
+        if deal_status:
+            child_sql.append(d)
+            child_params.append(deal_status)
+
+        number = len(child_sql)
+        if number > 0:
+            for i in child_sql:
+                sql = sql+' and '+i
+
+        if len(child_params) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, child_params)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+        return JsonResponse(data=data)  # 对象

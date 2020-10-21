@@ -1,5 +1,4 @@
 """ntss URL Configuration
-
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/2.2/topics/http/urls/
 Examples:
@@ -23,7 +22,6 @@ from App.views.equipment import EquipmentViewSet
 from App.views.equipment_allocation import EquipmentAllocationViewSet
 from App.views.equipment_calibration import EquipmentCalibrationViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
-from App.views.equipmentscrap import EquipmentScrapViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.power import PowerViewSet
 from App.views.power_relation import PowerRelationViewSet
@@ -33,6 +31,7 @@ from App.views.sensor import SensorViewSet
 from App.views.sensor_model import SensorModelViewSet
 from App.views.sensor_type import SensorTypeViewSet
 from App.views.user import UserViewSet
+from App.views.water_quality_notice import WaterQualityNoticeViewSet
 
 router = DefaultRouter()
 
@@ -50,7 +49,7 @@ router.register('power', PowerViewSet)
 router.register('power_role', PowerRelationViewSet)
 router.register('user', UserViewSet)
 router.register('equipment_calibration', EquipmentCalibrationViewSet)
-router.register('equipment_scrap', EquipmentScrapViewSet)
+router.register('water_quality_notice', WaterQualityNoticeViewSet)
 
 app_name = "App"
 
@@ -73,6 +72,7 @@ urlpatterns = [
     path('login_in/', views.loginin, name='login_in'),
     path('verify/', views.verify, name='verify'),
     path('sensor_calibration_retrieve/', views.sensorcalibrationretrieve, name='sensor_calibration_retrieve'),
+    path('role_power/', views.rolepowers, name='role_power'),
+    path('water_notice_retrieve/', views.waternoticeretrieve, name='water_notice_retrieve'),
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]
-

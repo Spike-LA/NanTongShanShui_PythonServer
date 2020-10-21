@@ -36,8 +36,9 @@ is_using = 1  # 可以使用
 not_using = -1  # 停止使用
 
 # 水质提醒
-wait_deal = 1  # 等待处理
+wait_deal = 1  # 未处理
+is_dealt = 0  # 已处理
 
 # 用户状态
-on_the_job = 1  # 在职
-leave_the_job = -1  # 离职
+not_Delete = 1  # 未删除
+Delete = -1  # 逻辑删除
