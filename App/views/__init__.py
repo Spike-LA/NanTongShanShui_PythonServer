@@ -297,7 +297,7 @@ def equipmenttoenginename(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * from (SELECT equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,equipment.storehouse,equipment.storage_location,equipment.note " \
+        sql_1 = "SELECT * from (SELECT equipment.equip_person,equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,equipment.storehouse,equipment.storage_location,equipment.note " \
               "FROM equipment INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
         a = "engine_code = %s"
         b = "equipment_code = %s"
@@ -620,7 +620,7 @@ def verify(request):
 
 # 通过前端发送的设备编号，将设备对应传感器的类型、标定时间、标定理论值、标定实际值返回给前端
 def sensorcalibrationretrieve(request):
-    # http: // 127.0.0.1:8000/app/sensor_calibration_retrieve/?deviceNum =110&currentPage=&size=&type_name=&begin_time=&end_time=
+    # http: // 127.0.0.1:8000/app/sensor_calibration_retrieve/?deviceNum=&currentPage=&size=&type_name=&begin_time=&end_time=
     if request.method == 'GET':
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -644,7 +644,7 @@ def sensorcalibrationretrieve(request):
         b = 'calibrate_time<%s'
         c = 'type_name=%s'
 
-        sql_1 = "SELECT * FROM (SELECT sensor_calibration.calibrate_time,sensor_calibration.actual_value,sensor.theoretical_value,sensor_type.type_name,equipment.equipment_code " \
+        sql_1 = "SELECT * FROM (SELECT sensor_calibration.calibrate_time,sensor_calibration.actual_value,sensor_calibration.calibrate_compensation,sensor.theoretical_value,sensor_type.type_name,equipment.equipment_code " \
                 "FROM sensor_calibration " \
                 "INNER JOIN sensor ON sensor_calibration.sensor_id=sensor.aid " \
                 "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
