@@ -564,6 +564,7 @@ def equipmentdetail(request):
             }
             return JsonResponse(data=data)
 
+
 @csrf_exempt
 def loginin(request):
     # http://127.0.0.1:8000/app/login_in/?account=&password=

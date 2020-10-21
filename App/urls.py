@@ -22,6 +22,7 @@ from App.views.equipment import EquipmentViewSet
 from App.views.equipment_allocation import EquipmentAllocationViewSet
 from App.views.equipment_calibration import EquipmentCalibrationViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
+from App.views.equipmentscrap import EquipmentScrapViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.power import PowerViewSet
 from App.views.power_relation import PowerRelationViewSet
@@ -48,6 +49,7 @@ router.register('power', PowerViewSet)
 router.register('power_role', PowerRelationViewSet)
 router.register('user', UserViewSet)
 router.register('equipment_calibration', EquipmentCalibrationViewSet)
+router.register('equipment_scrap', EquipmentScrapViewSet)
 
 app_name = "App"
 

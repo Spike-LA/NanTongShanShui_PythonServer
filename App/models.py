@@ -110,8 +110,6 @@ class EquipmentScrap(models.Model):
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
     equipment_id = models.CharField(max_length=255, blank=True, null=True)
-    equipment_number = models.CharField(max_length=50)
-    equipment_remark = models.CharField(max_length=50, blank=True, null=True)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
