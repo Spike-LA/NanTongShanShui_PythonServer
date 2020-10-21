@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'influxdb_metrics',
     'django_filters',
     'corsheaders',
-    'influxdb_metrics',
 ]
 
 INFLUXDB_HOST = "122.51.173.123"
@@ -64,21 +63,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-INFLUXDB_HOST = "122.51.173.123"
-INFLUXDB_PORT = "8086"
-INFLUXDB_USER = "root"
-INFLUXDB_PASSWORD = "root"
-INFLUXDB_DATABASE = "testDB"
-
-INFLUXDB_TIMEOUT = 5
-
-ROOT_URLCONF = 'ntss.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
