@@ -198,7 +198,7 @@ class WaterQualityNotice(models.Model):
     sensor_id = models.CharField(max_length=255, blank=True, null=True)
     measurement = models.CharField(max_length=50, blank=True, null=True)
     notice_time = models.DateTimeField(blank=True, null=True)
-    deal_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    deal_time = models.DateTimeField(blank=True, null=True, auto_now=True)
     deal_status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
