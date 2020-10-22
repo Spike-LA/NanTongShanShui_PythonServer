@@ -4,7 +4,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import User, PowerRelation, Power
-from App.views_constant import  not_Delete
+from App.views_constant import not_Delete
 
 
 class UserSerializer(serializers.ModelSerializer):
