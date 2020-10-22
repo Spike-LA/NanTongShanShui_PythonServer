@@ -718,7 +718,7 @@ def rolepowers(request):
 
 # 通过设备id查找对应设备上传感器的水质提醒记录
 def waternoticeretrieve(request):
-    # http://10.21.1.106:8000/app/water_notice_retrieve/?currentPage=&size&&equipment_id=&begin_time=&end_time=&type_name=&deal_status=
+    # http://10.21.1.106:8000/app/water_notice_retrieve/?currentPage=&size=&equipment_id=&begin_time=&end_time=&type_name=&deal_status=
     if request.method == 'GET':
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -774,6 +774,119 @@ def waternoticeretrieve(request):
             for i in child_sql:
                 sql = sql+' and '+i
         sql = sql + e
+        if len(child_params) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, child_params)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+        return JsonResponse(data=data)  # 对象
+
+# 设备报废的查询和搜索
+def equipmentscrapretrieve(request):
+    # http://10.21.1.106:8000/app/equipment_scrap_retrieve/?currentPage=&size=&equipment_code=
+    if request.method == 'GET':
+        equipment_code = request.GET.get('equipment_code')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        sql_1 = "SELECT * FROM (SELECT equipment_scrap.applicant_time,equipment_scrap.host_number,equipment_scrap.host_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment.equipment_code,equipment.storehouse,equipment.storage_location " \
+                "FROM equipment_scrap " \
+                "INNER JOIN equipment " \
+                "WHERE equipment_scrap.equipment_id=equipment_id.aid) AS a"
+        if equipment_code:
+            sql = sql_1 + ' where equipment_code=%s'
+            table = [equipment_code]
+        else:
+            sql = sql_1
+            table = []
+
+        print(sql)
+        if len(table) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, table)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)
+        }
+        return JsonResponse(data=data)
+
+# 设备配置记录查询和搜索
+def equipmentconfigurationretrieve(request):
+    # http://10.21.1.106:8000/app/equipment_configuration_retrieve/?currentPage=&size=&equipment_code=&engine_code=&begin_time=&end_time=&
+    if request.method == 'GET':
+        engine_code = request.GET.get('engine_code')
+        equipment_code = request.GET.get('equipment_code')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        time_second_begin = 'T00:00:00'
+        time_second_end = 'T23:59:59'
+        print(begin_time_first, end_time_first)
+        if begin_time_first:
+            begin_time = begin_time_first + time_second_begin
+        if end_time_first:
+            end_time = end_time_first + time_second_end
+
+        sql = "SELECT * FROM (SELECT equipment.alert_time,equipment.equip_person,equipment.equipment_code,equipment.storehouse,equipment.storage_location,main_engine.engine_code,main_engine.engine_name " \
+              "FROM equipment " \
+              "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
+        a = 'alert_time>=%s'
+        b = 'alert_time<=%s'
+        c = 'engine_code=%s'
+        d = 'equipment_code=%s'
+
+        child_sql = []
+        child_params = []
+        if begin_time_first:
+            child_sql.append(a)
+            child_params.append(begin_time)
+        if end_time_first:
+            child_sql.append(b)
+            child_params.append(end_time)
+        if engine_code:
+            child_sql.append(c)
+            child_params.append(engine_code)
+        if equipment_code:
+            child_sql.append(d)
+            child_params.append(equipment_code)
+
+        length = len(child_sql)
+        if length == 0:
+            pass
+        elif length == 1:
+            sql = sql+' where '+child_sql[0]
+        else:
+            for i in child_sql:
+                if len(child_sql) == length:
+                    sql = sql+' where'+i
+                    child_sql.pop(0)
+                else:
+                    sql = sql+' and '+i
+
+        sql = sql + ' order by alert_time desc'
+
         if len(child_params) == 0:
             results = maintenance(sql)
         else:
