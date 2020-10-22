@@ -696,7 +696,7 @@ def sensorcalibrationretrieve(request):
 
 # 通过角色id查找角色对应的所有权限
 def rolepowers(request):
-    # http://10.21.1.106:8000/app/role_power/role_id=
+    # http://10.21.1.106:8000/app/role_power/?role_id=
     if request.method == 'GET':
         role_id = request.GET.get('role_id')
         que = PowerRelation.objects.filter(aim_id=role_id)
@@ -718,6 +718,7 @@ def rolepowers(request):
 
 # 通过设备id查找对应设备上传感器的水质提醒记录
 def waternoticeretrieve(request):
+    # http://10.21.1.106:8000/app/water_notice_retrieve/?currentPage=&size&&equipment_id=&begin_time=&end_time=&type_name=&deal_status=
     if request.method == 'GET':
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -750,9 +751,10 @@ def waternoticeretrieve(request):
         b = 'notice_time<=%s'
         c = 'type_name=%s'
         d = 'deal_status=%s'
-        
+        e = 'order by notice_time desc'
         child_sql = []
         child_params = []
+
         child_params.append(equipment_id)
         if begin_time_first:
             child_sql.append(a)
@@ -771,7 +773,7 @@ def waternoticeretrieve(request):
         if number > 0:
             for i in child_sql:
                 sql = sql+' and '+i
-
+        sql = sql + e
         if len(child_params) == 0:
             results = maintenance(sql)
         else:
