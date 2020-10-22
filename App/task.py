@@ -12,7 +12,7 @@ conn_db = InfluxDBClient('122.51.173.123', '8086', 'root', 'root', 'testDB')
 
 def task():
     # 连接数据库
-    db = pymysql.connect("localhost", "root", "123456", "ntss", charset='utf8')
+    db = pymysql.connect("10.21.1.58", "root", "root", "ntss", charset='utf8')
 
     # 使用cursor()方法获取操作游标
     cursor = db.cursor()
