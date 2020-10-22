@@ -19,14 +19,15 @@ class EquipmentScrapSerializer(serializers.ModelSerializer):
         instance = EquipmentScrap()
 
         instance.aid = uuid.uuid4().hex
-        now = datetime.now()
-        instance.table_id = now.strftime("%Y%m%d") + str(random.randint(10000, 99999))
         instance.host_number = validated_data.get('host_number')
         instance.host_name = validated_data.get('host_name')
-        instance.equipment_id = validated_data.get('equipment_id')
-        instance1 = Equipment.objects.filter(aid=instance.equipment_id).first()
-        instance1.status = scraped
-        instance1.save()
+        instance.equipment_code = validated_data.get('equipment_code')
+        obj_equipment = Equipment.objects.filter(aid=instance.equipment_code).first()  # 找到调拨的设备对象
+        obj_equipment.status = scraped  # 设置调拨的设备状态为在线
+        obj_equipment.save()
+        instance.equipment_remark = validated_data.get('equipment_remark')
+        instance.store = validated_data.get('store')
+        instance.location = validated_data.get('location')
         instance.applicant = validated_data.get('applicant')
         instance.applicant_time = validated_data.get('applicant_time')
         instance.applicant_tel = validated_data.get('applicant_tel')
