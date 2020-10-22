@@ -57,13 +57,12 @@ class Equipment(models.Model):
 
 class EquipmentAllocation(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    table_id = models.CharField(max_length=50)
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
-    equipment_id = models.CharField(max_length=255, blank=True, null=True)
+    equipment_code = models.CharField(max_length=50)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
-    client_id = models.CharField(max_length=255, blank=True, null=True)
+    client_code = models.CharField(max_length=255, blank=True, null=True)
     allocation_reason = models.CharField(max_length=50, blank=True, null=True)
     transport_unit = models.CharField(max_length=50, blank=True, null=True)
     agent = models.CharField(max_length=50, blank=True, null=True)
@@ -72,10 +71,16 @@ class EquipmentAllocation(models.Model):
     sign = models.CharField(max_length=50, blank=True, null=True)
     approval_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
+    equipment_remark = models.CharField(max_length=255, blank=True, null=True)
+    tel_num = models.CharField(max_length=50, blank=True, null=True)
+    transfer_unit = models.CharField(max_length=50, blank=True, null=True)
+    transfer_unit_ads = models.CharField(max_length=50, blank=True, null=True)
+    transfer_unit_tel = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'equipment_allocation'
+
 
 
 class EquipmentAndSensor(models.Model):
@@ -106,10 +111,10 @@ class EquipmentMaintenance(models.Model):
 
 class EquipmentScrap(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    table_id = models.CharField(max_length=50)
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
-    equipment_id = models.CharField(max_length=255, blank=True, null=True)
+    equipment_code = models.CharField(max_length=50)
+    equipment_remark = models.CharField(max_length=255, blank=True, null=True)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
@@ -118,7 +123,9 @@ class EquipmentScrap(models.Model):
     opinion = models.CharField(max_length=50, blank=True, null=True)
     sign = models.CharField(max_length=50, blank=True, null=True)
     approval_time = models.DateField(blank=True, null=True)
-    remark = models.CharField(max_length=50, blank=True, null=True)
+    remark = models.CharField(max_length=255, blank=True, null=True)
+    store = models.CharField(max_length=50, blank=True, null=True)
+    location = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
