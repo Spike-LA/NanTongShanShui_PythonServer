@@ -59,15 +59,15 @@ class EquipmentAllocation(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
-    equipment_code = models.CharField(max_length=50)
+    equipment_aid = models.CharField(max_length=255)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
-    client_code = models.CharField(max_length=255, blank=True, null=True)
+    client_aid = models.CharField(max_length=255, blank=True, null=True)
     allocation_reason = models.CharField(max_length=50, blank=True, null=True)
     transport_unit = models.CharField(max_length=50, blank=True, null=True)
     agent = models.CharField(max_length=50, blank=True, null=True)
     agent_tel = models.CharField(max_length=50, blank=True, null=True)
-    opinion = models.CharField(max_length=255, blank=True, null=True)
+    opinion = models.CharField(max_length=50, blank=True, null=True)
     sign = models.CharField(max_length=50, blank=True, null=True)
     approval_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=50, blank=True, null=True)
@@ -80,7 +80,6 @@ class EquipmentAllocation(models.Model):
     class Meta:
         managed = False
         db_table = 'equipment_allocation'
-
 
 
 class EquipmentAndSensor(models.Model):
@@ -113,7 +112,7 @@ class EquipmentScrap(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     host_number = models.CharField(max_length=50)
     host_name = models.CharField(max_length=50)
-    equipment_code = models.CharField(max_length=50)
+    equipment_aid = models.CharField(max_length=255)
     equipment_remark = models.CharField(max_length=255, blank=True, null=True)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)

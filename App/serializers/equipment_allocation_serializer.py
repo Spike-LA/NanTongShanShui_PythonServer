@@ -22,8 +22,8 @@ class EquipmentAllocationSerializer(serializers.ModelSerializer):
         instance.aid = uuid.uuid4().hex
         instance.host_number = validated_data.get('host_number')
         instance.host_name = validated_data.get('host_name')
-        instance.equipment_code = validated_data.get('equipment_code')
-        obj_equipment = Equipment.objects.filter(aid=instance.equipment_code).first()  # 找到调拨的设备对象
+        instance.equipment_aid = validated_data.get('equipment_aid')
+        obj_equipment = Equipment.objects.filter(aid=instance.equipment_aid).first()  # 找到调拨的设备对象
         obj_equipment.status = on_line  # 设置调拨的设备状态为在线
         obj_equipment.save()
         instance.equipment_remark = validated_data.get('equipment_remark')
@@ -33,7 +33,7 @@ class EquipmentAllocationSerializer(serializers.ModelSerializer):
         instance.transfer_unit_tel = validated_data.get('transfer_unit_tel')
         instance.applicant = validated_data.get('applicant')
         instance.applicant_time = validated_data.get('applicant_time')
-        instance.client_code = validated_data.get('client_code')
+        instance.client_aid = validated_data.get('client_aid')
         instance.allocation_reason = validated_data.get('allocation_reason')
         instance.transport_unit = validated_data.get('transport_unit')
         instance.agent = validated_data.get('agent')
