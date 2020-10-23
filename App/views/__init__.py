@@ -849,7 +849,7 @@ def equipmentconfigurationretrieve(request):
         if end_time_first:
             end_time = end_time_first + time_second_end
 
-        sql = "SELECT * FROM (SELECT equipment.alert_time,equipment.equip_person,equipment.equipment_code,equipment.storehouse,equipment.storage_location,main_engine.engine_code,main_engine.engine_name " \
+        sql = "SELECT * FROM (SELECT equipment.aid,equipment.alert_time,equipment.equip_person,equipment.equipment_code,equipment.storehouse,equipment.storage_location,main_engine.engine_code,main_engine.engine_name " \
               "FROM equipment " \
               "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
         a = 'alert_time>=%s'
@@ -857,6 +857,7 @@ def equipmentconfigurationretrieve(request):
         c = 'engine_code=%s'
         d = 'equipment_code=%s'
 
+        print(sql)
         child_sql = []
         child_params = []
         if begin_time_first:
@@ -878,12 +879,90 @@ def equipmentconfigurationretrieve(request):
         elif length == 1:
             sql = sql+' where '+child_sql[0]
         else:
+            n = 1
             for i in child_sql:
-                if len(child_sql) == length:
-                    sql = sql+' where'+i
-                    child_sql.pop(0)
+                if n == 1:
+                    sql = sql+' where '+i
+                    n += 1
                 else:
                     sql = sql+' and '+i
+
+        sql = sql + ' order by alert_time desc'
+
+        if len(child_params) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, child_params)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+        return JsonResponse(data=data)  # 对象
+
+# 设备调拨记录查询和搜索
+def equipmentallocationretrieve(request):
+    # http://10.21.1.106:8000/app/equipment_allocation_retrieve/?currentPage=&size=&status=&transport_unit=&begin_time=&end_time=&
+    if request.method == 'GET':
+        transport_unit = request.GET.get('transport_unit')
+        status = request.GET.get('status')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        time_second_begin = 'T00:00:00'
+        time_second_end = 'T23:59:59'
+        print(begin_time_first, end_time_first)
+        if begin_time_first:
+            begin_time = begin_time_first + time_second_begin
+        if end_time_first:
+            end_time = end_time_first + time_second_end
+
+        sql = "SELECT * FROM (SELECT equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transport_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,equipment_allocation.remark " \
+              "FROM equipment_allocation " \
+              "INNER JOIN equipment ON equipment_allocation.equipment_code=equipment.equipment_code) AS a "
+        a = 'applicant_time>=%s'
+        b = 'applicant_time<=%s'
+        c = 'transport_unit=%s'
+        d = 'status=%s'
+
+        print(sql)
+        child_sql = []
+        child_params = []
+        if begin_time_first:
+            child_sql.append(a)
+            child_params.append(begin_time)
+        if end_time_first:
+            child_sql.append(b)
+            child_params.append(end_time)
+        if transport_unit:
+            child_sql.append(c)
+            child_params.append(transport_unit)
+        if status:
+            child_sql.append(d)
+            child_params.append(status)
+
+        length = len(child_sql)
+        if length == 0:
+            pass
+        elif length == 1:
+            sql = sql + ' where ' + child_sql[0]
+        else:
+            n = 1
+            for i in child_sql:
+                if n == 1:
+                    sql = sql + ' where ' + i
+                    n += 1
+                else:
+                    sql = sql + ' and ' + i
 
         sql = sql + ' order by alert_time desc'
 
