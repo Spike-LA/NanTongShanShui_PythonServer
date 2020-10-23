@@ -4,7 +4,7 @@ on_production = 1  # 在产
 stop_production = 0  # 停产
 Delete = -1  # 逻辑删除
 
-# 设备
+# 设备状态
 on_line = 0  # 在线(在用户厂里）
 stop_run = 1  # 停运(在公司厂里）
 scraped = 2  # 报废

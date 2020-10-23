@@ -1,4 +1,5 @@
 import datetime
+import json
 import uuid
 
 from django.core.paginator import Paginator
@@ -147,6 +148,7 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
 
 # 用于查询单个设备的维护报修记录
 def equipmentmaintenance(request):
+
     if request.method == "GET":
         begin_time = request.GET.get('begin_time')
         end_time = request.GET.get('end_time')
@@ -186,9 +188,9 @@ def equipmentmaintenance(request):
                 if maintain_cause:  # 通过维护原因和时间范围查找 111
                     que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
                         (repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
-                else:  # 通过维护原因、begin_time查找 110
+                else:  # 通过end_time、begin_time查找 110
                     que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
-                        (repair_time__gte=begin_time)
+                        (repair_time__gte=begin_time).filter(repair_time__lte=end_time)
         num = len(que)  # 共计几个对象
         serializer = EquipmentMaintenanceSerializer(instance=que, many=True)  # 利用序列化器将查询集转化为有序字典
         data_1 = serializer.data
@@ -566,15 +568,18 @@ def equipmentdetail(request):
 
 @csrf_exempt
 def loginin(request):
-    # http://127.0.0.1:8000/app/login_in/?account=&password=
+    # http://127.0.0.1:8000/app/login_in/
     if request.method == 'POST':
-        account = request.POST.get('account')
-        password = request.POST.get('password')
+        # 从request中拿出body属性（二进制格式），利用decode方法解码成python格式，再利用replace方法将'替换为\"。之后用json模块的loads函数将其转化为
+        # json（字典）格式，最后用get函数获取对应的键值
+        account = json.loads(request.body.decode().replace("'", "\"")).get('account')
+        password = json.loads(request.body.decode().replace("'", "\"")).get('password')
         obj = User.objects.filter(account=account).first()
         if obj:  # 账户存在
             if obj.password == password:  # 账户存在且密码正确
 
                 data = {
+                    'username': obj.name,
                     'user_id': obj.aid,
                     'role_id': obj.role_id,
                     'msg': '登陆成功',
@@ -789,9 +794,9 @@ def waternoticeretrieve(request):
 
 # 设备报废的查询和搜索
 def equipmentscrapretrieve(request):
-    # http://10.21.1.106:8000/app/equipment_scrap_retrieve/?currentPage=&size=&equipment_code=
+    # http://10.21.1.106:8000/app/equipment_scrap_retrieve/?currentPage=&size=&equipment_id=
     if request.method == 'GET':
-        equipment_code = request.GET.get('equipment_code')
+        equipment_id = request.GET.get('equipment_id')
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
@@ -800,13 +805,13 @@ def equipmentscrapretrieve(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * FROM (SELECT equipment_scrap.applicant_time,equipment_scrap.host_number,equipment_scrap.host_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment.equipment_code,equipment.storehouse,equipment.storage_location " \
+        sql_1 = "SELECT * FROM (SELECT equipment_scrap.applicant_time,equipment_scrap.host_number,equipment_scrap.host_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment.aid,equipment.storehouse,equipment.storage_location,equipment.equipment_code " \
                 "FROM equipment_scrap " \
                 "INNER JOIN equipment " \
-                "WHERE equipment_scrap.equipment_id=equipment_id.aid) AS a"
-        if equipment_code:
-            sql = sql_1 + ' where equipment_code=%s'
-            table = [equipment_code]
+                "WHERE equipment_scrap.equipment_id=equipment.aid) AS a"
+        if equipment_id:
+            sql = sql_1 + ' where aid=%s'
+            table = [equipment_id]
         else:
             sql = sql_1
             table = []
@@ -904,9 +909,9 @@ def equipmentconfigurationretrieve(request):
 
 # 设备调拨记录查询和搜索
 def equipmentallocationretrieve(request):
-    # http://10.21.1.106:8000/app/equipment_allocation_retrieve/?currentPage=&size=&status=&transport_unit=&begin_time=&end_time=&
+    # http://10.21.1.106:8000/app/equipment_allocation_retrieve/?currentPage=&size=&status=&transfer_unit=&begin_time=&end_time=&
     if request.method == 'GET':
-        transport_unit = request.GET.get('transport_unit')
+        transfer_unit = request.GET.get('transfer_unit')
         status = request.GET.get('status')
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -920,21 +925,22 @@ def equipmentallocationretrieve(request):
         end_time_first = request.GET.get('end_time')
         time_second_begin = 'T00:00:00'
         time_second_end = 'T23:59:59'
-        print(begin_time_first, end_time_first)
         if begin_time_first:
             begin_time = begin_time_first + time_second_begin
         if end_time_first:
             end_time = end_time_first + time_second_end
 
-        sql = "SELECT * FROM (SELECT equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transport_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,equipment_allocation.remark " \
+        sql = "SELECT * FROM (SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,equipment_allocation.remark " \
               "FROM equipment_allocation " \
-              "INNER JOIN equipment ON equipment_allocation.equipment_code=equipment.equipment_code) AS a "
+              "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid) AS a "
+
+        sql_1 = "SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,equipment_allocation.remark " \
+                "FROM equipment_allocation INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
         a = 'applicant_time>=%s'
         b = 'applicant_time<=%s'
-        c = 'transport_unit=%s'
+        c = 'transfer_unit=%s'
         d = 'status=%s'
 
-        print(sql)
         child_sql = []
         child_params = []
         if begin_time_first:
@@ -943,16 +949,16 @@ def equipmentallocationretrieve(request):
         if end_time_first:
             child_sql.append(b)
             child_params.append(end_time)
-        if transport_unit:
+        if transfer_unit:
             child_sql.append(c)
-            child_params.append(transport_unit)
+            child_params.append(transfer_unit)
         if status:
             child_sql.append(d)
             child_params.append(status)
 
         length = len(child_sql)
         if length == 0:
-            pass
+            sql = sql_1
         elif length == 1:
             sql = sql + ' where ' + child_sql[0]
         else:
@@ -964,7 +970,7 @@ def equipmentallocationretrieve(request):
                 else:
                     sql = sql + ' and ' + i
 
-        sql = sql + ' order by alert_time desc'
+        sql = sql + ' order by applicant_time desc'
 
         if len(child_params) == 0:
             results = maintenance(sql)
