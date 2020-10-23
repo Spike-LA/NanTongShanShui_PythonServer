@@ -594,6 +594,7 @@ def loginin(request):
 
     return JsonResponse(data=data, safe=False)
 
+
 # 前端验证登陆状态时，返回给前端这个账号的所有权限别名
 def verify(request):
     # http://127.0.0.1:8000/app/verify/?user_id=&role_id=
