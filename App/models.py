@@ -62,7 +62,7 @@ class EquipmentAllocation(models.Model):
     equipment_aid = models.CharField(max_length=255)
     applicant = models.CharField(max_length=50, blank=True, null=True)
     applicant_time = models.DateField(blank=True, null=True)
-    client_code = models.CharField(max_length=255, blank=True, null=True)
+    client_aid = models.CharField(max_length=255, blank=True, null=True)
     allocation_reason = models.CharField(max_length=50, blank=True, null=True)
     transport_unit = models.CharField(max_length=50, blank=True, null=True)
     agent = models.CharField(max_length=50, blank=True, null=True)

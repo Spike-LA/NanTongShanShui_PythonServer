@@ -21,8 +21,8 @@ class EquipmentScrapSerializer(serializers.ModelSerializer):
         instance.aid = uuid.uuid4().hex
         instance.host_number = validated_data.get('host_number')
         instance.host_name = validated_data.get('host_name')
-        instance.equipment_code = validated_data.get('equipment_code')
-        obj_equipment = Equipment.objects.filter(aid=instance.equipment_code).first()  # 找到调拨的设备对象
+        instance.equipment_aid = validated_data.get('equipment_aid')
+        obj_equipment = Equipment.objects.filter(aid=instance.equipment_aid).first()  # 找到调拨的设备对象
         obj_equipment.status = scraped  # 设置调拨的设备状态为在线
         obj_equipment.save()
         instance.equipment_remark = validated_data.get('equipment_remark')
