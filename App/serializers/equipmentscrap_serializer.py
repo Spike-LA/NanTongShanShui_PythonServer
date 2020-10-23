@@ -23,7 +23,7 @@ class EquipmentScrapSerializer(serializers.ModelSerializer):
         instance.host_name = validated_data.get('host_name')
         instance.equipment_id = validated_data.get('equipment_id')
         obj_equipment = Equipment.objects.filter(aid=instance.equipment_id).first()  # 找到调拨的设备对象
-        obj_equipment.status = scraped  # 设置调拨的设备状态为在线
+        obj_equipment.status = scraped  # 设置调拨的设备状态为报废
         obj_equipment.save()
         instance.equipment_remark = validated_data.get('equipment_remark')
         instance.store = validated_data.get('store')
@@ -41,3 +41,4 @@ class EquipmentScrapSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+

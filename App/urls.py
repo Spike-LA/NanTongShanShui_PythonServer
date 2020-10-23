@@ -76,5 +76,8 @@ urlpatterns = [
     path('sensor_calibration_retrieve/', views.sensorcalibrationretrieve, name='sensor_calibration_retrieve'),
     path('role_power/', views.rolepowers, name='role_power'),
     path('water_notice_retrieve/', views.waternoticeretrieve, name='water_notice_retrieve'),
+    path('equipment_scrap_retrieve/', views.equipmentscrapretrieve, name='equipment_scrap_retrieve'),
+    path('equipment_configuration_retrieve/', views.equipmentconfigurationretrieve, name='equipment_configuration_retrieve'),
+    path('equipment_allocation_retrieve/', views.equipmentallocationretrieve, name='equipment_allocation_retrieve'),
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]

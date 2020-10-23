@@ -27,7 +27,7 @@ class EquipmentAllocationSerializer(serializers.ModelSerializer):
         obj_equipment.status = on_line  # 设置调拨的设备状态为在线
         obj_equipment.save()
         instance.equipment_remark = validated_data.get('equipment_remark')
-        instance.tel_num = validated_data.get('tel_num')
+        instance.applicant_tel = validated_data.get('applicant_tel')
         instance.transfer_unit = validated_data.get('transfer_unit')
         instance.transfer_unit_ads = validated_data.get('transfer_unit_ads')
         instance.transfer_unit_tel = validated_data.get('transfer_unit_tel')
