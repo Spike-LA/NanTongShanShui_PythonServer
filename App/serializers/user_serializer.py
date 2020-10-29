@@ -60,6 +60,9 @@ class UserSerializer(serializers.ModelSerializer):
             power_id_str = validated_data.get('power_id_str')
             if power_id_str:
                 new_power_id_list = power_id_str.split(',')  # 利用split方法，以,为间隔符进行分割，形成一个由新权限id组成的列表
+                power_relation_que = PowerRelation.objects.filter(aim_id=instance.role_id) # 找到角色附带的权限关系对象
+                for power_relation_obj in power_relation_que:
+                    new_power_id_list.remove(power_relation_obj.power_id) # 将角色附带的权限去掉（否则会把角色附带的权限也加进去）
                 for new_power_id in new_power_id_list:  # 增加全部新权限
                     instance_power_relation = PowerRelation()
                     instance_power_relation.aid = uuid.uuid4().hex

@@ -10,6 +10,7 @@ class MainEngineFilter(FilterSet):
     begin_time_lte = django_filters.DateFilter(field_name='begin_time', lookup_expr='lte')
     end_time_gte = django_filters.DateFilter(field_name='end_time', lookup_expr='gte')
     end_time_lte = django_filters.DateFilter(field_name='end_time', lookup_expr='lte')
+    status = django_filters.CharFilter(field_name='status', lookup_expr='exact')
 
     class Meta:
         model = MainEngine

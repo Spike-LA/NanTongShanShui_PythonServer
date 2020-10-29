@@ -30,54 +30,55 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         type_name = request.GET.get("type_name")
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
-        sql_1 = "SELECT * FROM (SELECT sensor.aid,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
+        status = request.GET.get('status')
+        sql = "SELECT * FROM (SELECT sensor.aid,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
                       " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
                       " ON sensor_model.aid=sensor.sensor_model_id) AS a"
+
         a = "type_name=%s"
         b = "sensor_model=%s"
         c = "sensor_code=%s"
+        d = "status=%s"
+
+        child_sql = []
+        child_params = []
         if type_name:
-            if sensor_model:
-                if sensor_code:  # 111
-                    sql = sql_1 + " where "+a + " and " + b + " and " + c
-                    table = [type_name, sensor_model, sensor_code]
-                else:  # 110
-                    sql = sql_1 + " where "+a + " and " + b
-                    table = [type_name, sensor_model]
+            child_sql.append(a)
+            child_params.append(type_name)
+        if sensor_model:
+            child_sql.append(b)
+            child_params.append(sensor_model)
+        if sensor_code:
+            child_sql.append(c)
+            child_params.append(sensor_code)
+        if status:
+            child_sql.append(d)
+            child_params.append(status)
+
+        number = len(child_sql)
+
+        if number >= 1:
+            if number == 1:
+                sql = sql + ' where ' + child_sql[0]
             else:
-                if sensor_code: # 101
-                    sql = sql_1 + " where "+a + " and " + c
-                    table = [type_name, sensor_code]
-                else:  # 100
-                    sql = sql_1 + " where " + a
-                    table = [type_name]
+                sql = sql + ' where ' + child_sql[0]
+                for i in child_sql[1:]:
+                    sql = sql+' and '+i
         else:
-            if sensor_model:
-                if sensor_code:  # 011
-                    sql = sql_1 + " where " + b + " and " + c
-                    table = [sensor_model, sensor_code]
-                else:  # 010
-                    sql = sql_1 + " where " + b
-                    table = [sensor_model]
-            else:
-                if sensor_code: # 001
-                    sql = sql_1 + " where " + c
-                    table = [sensor_code]
-                else:  # 000
-                    sql = sql_1
-                    table = []
-    if len(table) == 0:
-        results = maintenance(sql)
-    else:
-        results = maintenances(sql, table)
-    num = len(results)  # 共计几个对象
-    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-    data = {
-        "count": num,
-        "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
-    }
-    return JsonResponse(data=data)  # 对象
+            sql = sql
+        print(sql)
+        if len(child_params) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, child_params)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+        return JsonResponse(data=data)  # 对象
 
 
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
