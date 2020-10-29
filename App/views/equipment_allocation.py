@@ -1,4 +1,3 @@
-
 from rest_framework.viewsets import ModelViewSet
 
 from App.models import EquipmentAllocation

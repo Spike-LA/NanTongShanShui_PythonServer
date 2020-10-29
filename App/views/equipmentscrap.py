@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
 from App.models import EquipmentScrap
-from App.serializers.equipmentscrap_serializer import EquipmentScrapSerializer
+from App.serializers.equipment_scrap_serializer import EquipmentScrapSerializer
 
 
 class EquipmentScrapViewSet(viewsets.ModelViewSet):

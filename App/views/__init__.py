@@ -299,8 +299,9 @@ def equipmenttoenginename(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * from (SELECT equipment.equip_person,equipment.aid,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,equipment.storehouse,equipment.storage_location,equipment.note " \
-              "FROM equipment INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
+        sql_1 = "SELECT * from (SELECT equipment.equip_person,equipment.aid AS equipment_id,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,main_engine.aid AS engine_id,equipment.storehouse,equipment.storage_location,equipment.note " \
+                "FROM equipment " \
+                "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
         a = "engine_code = %s"
         b = "equipment_code = %s"
         if engine_code:
@@ -532,6 +533,7 @@ def mainenginecodeandname(request):
             dic = {}
             dic['engine_name'] = obj.engine_name
             dic['engine_code'] = obj.engine_code
+            dic['status'] = obj.status
             table.append(dic)
     return JsonResponse(data=table, safe=False)
 
@@ -794,9 +796,9 @@ def waternoticeretrieve(request):
 
 # 设备报废的查询和搜索
 def equipmentscrapretrieve(request):
-    # http://10.21.1.106:8000/app/equipment_scrap_retrieve/?currentPage=&size=&equipment_id=
+    # http://10.21.1.106:8000/app/equipment_scrap_retrieve/?currentPage=&size=&equipment_code=
     if request.method == 'GET':
-        equipment_id = request.GET.get('equipment_id')
+        equipment_code = request.GET.get('equipment_code')
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
@@ -805,13 +807,15 @@ def equipmentscrapretrieve(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * FROM (SELECT equipment_scrap.applicant_time,equipment_scrap.host_number,equipment_scrap.host_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment.aid,equipment.storehouse,equipment.storage_location,equipment.equipment_code " \
+        sql_1 = "SELECT * FROM (SELECT equipment_scrap.applicant_time,main_engine.engine_code,main_engine.engine_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment_scrap.applicant,equipment_scrap.applicant_tel,equipment.storehouse,equipment.storage_location,equipment.equipment_code,equipment.aid  " \
                 "FROM equipment_scrap " \
                 "INNER JOIN equipment " \
-                "WHERE equipment_scrap.equipment_id=equipment.aid) AS a"
-        if equipment_id:
-            sql = sql_1 + ' where aid=%s'
-            table = [equipment_id]
+                "ON equipment_scrap.equipment_id=equipment.aid " \
+                "INNER JOIN main_engine ON equipment_scrap.engine_id=main_engine.aid) AS a"
+
+        if equipment_code:
+            sql = sql_1 + ' where equipment_code=%s'
+            table = [equipment_code]
         else:
             sql = sql_1
             table = []
@@ -930,12 +934,13 @@ def equipmentallocationretrieve(request):
         if end_time_first:
             end_time = end_time_first + time_second_end
 
-        sql = "SELECT * FROM (SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,equipment_allocation.remark " \
+        sql = "SELECT * FROM (SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
               "FROM equipment_allocation " \
               "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid) AS a "
 
-        sql_1 = "SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,equipment_allocation.remark " \
-                "FROM equipment_allocation INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
+        sql_1 = "SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
+              "FROM equipment_allocation " \
+              "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
         a = 'applicant_time>=%s'
         b = 'applicant_time<=%s'
         c = 'transfer_unit=%s'

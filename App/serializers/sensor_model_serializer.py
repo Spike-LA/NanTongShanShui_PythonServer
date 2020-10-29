@@ -10,7 +10,7 @@ class SensorModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = SensorModel
         fields = '__all__'
-        read_only_fields = ('aid',)
+        read_only_fields = ('aid', 'create_time')
 
     def create(self, validated_data):
 
@@ -21,7 +21,6 @@ class SensorModelSerializer(serializers.ModelSerializer):
         instance.sensor_model = validated_data.get('sensor_model')
         instance.sensor_threshold = validated_data.get('sensor_threshold')
         instance.notice_content = validated_data.get('notice_content')
-        instance.create_time = validated_data.get('create_time')
 
         instance.save()
 
