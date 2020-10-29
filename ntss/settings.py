@@ -26,6 +26,7 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+SECURE_SSL_REDIRECT = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,6 +40,9 @@ INSTALLED_APPS = [
     'influxdb_metrics',
     'django_filters',
     'corsheaders',
+    'werkzeug_debugger_runserver',
+    'django_extensions',
+    "sslserver",
 ]
 
 INFLUXDB_HOST = "122.51.173.123"
