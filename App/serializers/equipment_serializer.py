@@ -5,7 +5,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import Equipment, Sensor, EquipmentAndSensor
-from App.views_constant import working, not_working
+from App.views_constant import working, not_working, stop_run
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
@@ -17,7 +17,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
         fields = '__all__'  # 显示所需要的字段#     #'__all__'显示全部的字段#
 
-        read_only_fields = ('aid','create_time', 'alert_time')
+        read_only_fields = ('aid','create_time', 'alert_time','stop_run')
 
     def create(self, validated_data):  # 需要自定义创建内容时自行创建create方法#
         print(validated_data.get('equipment_sensor'))
@@ -31,7 +31,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         instance.storage_location = validated_data.get('storage_location')
         instance.note = validated_data.get('note')
         instance.equip_person = validated_data.get('equip_person')
-        instance.status = validated_data.get('status')
+        instance.status = stop_run
 
         instance.save()
 
