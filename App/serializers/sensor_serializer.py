@@ -10,7 +10,6 @@ from App.views_constant import is_using, not_using
 
 class SensorSerializer(serializers.ModelSerializer):
 
-
     class Meta:
         model = Sensor
         fields = '__all__'

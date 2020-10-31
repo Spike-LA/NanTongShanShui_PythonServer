@@ -5,7 +5,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import Equipment, Sensor, EquipmentAndSensor
-from App.views_constant import working, not_working
+from App.views_constant import working, not_working, stop_run
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
@@ -31,7 +31,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         instance.storage_location = validated_data.get('storage_location')
         instance.note = validated_data.get('note')
         instance.equip_person = validated_data.get('equip_person')
-        instance.status = validated_data.get('status')
+        instance.status = stop_run
 
         instance.save()
 
@@ -53,10 +53,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        print(instance)
-        print(instance.engine_code)
         equipment_id = instance.aid
-        print(instance.aid)
         instance.engine_code = validated_data.get('engine_code', instance.engine_code)
         instance.storehouse = validated_data.get('storehouse', instance.storehouse)
         instance.storage_location = validated_data.get('storage_location', instance.storage_location)
@@ -64,33 +61,30 @@ class EquipmentSerializer(serializers.ModelSerializer):
         instance.equip_person = validated_data.get('equip_person', instance.equip_person)
         instance.save()
         # 从前端获取设备id
-        print(validated_data, equipment_id)
         # 根据设备id在数据库中查找该设备的数据对象
         e_and_s_obj = EquipmentAndSensor.objects.filter(equipment_id=equipment_id)
-        print(e_and_s_obj)
 
         sensor_list = []
         for obj in e_and_s_obj:
             sensor_list.append(obj.sensor_id)
-            print(obj.sensor_id)
+            obj.delete()
+        print(sensor_list)
         # 将字符串转化成列表
         ar = validated_data.get('equipment_sensor')
         arr = ar.split(',')
 
         # 对列表进行遍历，更新新的传感器
+        print(arr)
         for obj in arr:
-            if obj in sensor_list:
-                pass
-            else:
-                equipment_instance = EquipmentAndSensor()
-                equipment_instance.aid = uuid.uuid4().hex
-                equipment_instance.equipment_id = equipment_id
-                equipment_instance.sensor_id = obj
-                equipment_instance.status = working
-                equipment_instance.save()
-        # 将淘汰的传感器状态设为不在设备上工作
-        for obj in sensor_list:
-            sensor_obj = EquipmentAndSensor.objects.filter(sensor_id=obj).first()
-            sensor_obj.status = not_working
-            sensor_obj.save()
+            equipment_instance = EquipmentAndSensor()
+            equipment_instance.aid = uuid.uuid4().hex
+            equipment_instance.equipment_id = equipment_id
+            equipment_instance.sensor_id = obj
+            equipment_instance.status = working
+            equipment_instance.save()
+        # # 将淘汰的传感器状态设为不在设备上工作
+        # for obj in sensor_list:
+        #     sensor_obj = EquipmentAndSensor.objects.filter(sensor_id=obj).first()
+        #     sensor_obj.status = not_working
+        #     sensor_obj.save()
         return instance

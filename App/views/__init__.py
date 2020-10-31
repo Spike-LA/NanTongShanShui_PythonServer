@@ -291,6 +291,7 @@ def equipmenttoenginename(request):
     if request.method == 'GET':
         engine_code = request.GET.get('engine_code')
         equipment_code = request.GET.get('equipment_code')
+        status = request.GET.get('status')
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
@@ -299,30 +300,40 @@ def equipmenttoenginename(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * from (SELECT equipment.equip_person,equipment.aid AS equipment_id,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,main_engine.aid AS engine_id,equipment.storehouse,equipment.storage_location,equipment.note " \
+        sql = "SELECT * from (SELECT equipment.status,equipment.equip_person,equipment.aid AS equipment_id,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,main_engine.aid AS engine_id,equipment.storehouse,equipment.storage_location,equipment.note " \
                 "FROM equipment " \
                 "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
-        a = "engine_code = %s"
-        b = "equipment_code = %s"
-        if engine_code:
-            if equipment_code:  # 11
-                sql = sql_1 + " where "+a+" and "+b
-                table = [engine_code,equipment_code]
-            else:  # 10
-                sql = sql_1 + " where " + a
-                table = [engine_code]
-        else:
-            if equipment_code:  # 01
-                sql = sql_1 + " where " + b
-                table = [equipment_code]
-            else:  # 00
-                sql = sql_1
-                table = []
 
-        if len(table) == 0:
+        a = "engine_code=%s"
+        b = "equipment_code=%s"
+        c = "status=%s"
+        child_sql = []
+        child_params = []
+        if engine_code:
+            child_sql.append(a)
+            child_params.append(engine_code)
+        if equipment_code:
+            child_sql.append(b)
+            child_params.append(equipment_code)
+        if status:
+            child_sql.append(c)
+            child_params.append(status)
+
+        number = len(child_sql)
+        if number >= 1:
+            if number == 1:
+                sql = sql + ' where ' + child_sql[0]
+            else:
+                sql = sql + ' where ' + child_sql[0]
+                for i in child_sql[1:]:
+                    sql = sql + ' and ' + i
+        else:
+            sql = sql
+        print(sql)
+        if len(child_params) == 0:
             results = maintenance(sql)
         else:
-            results = maintenances(sql, table)
+            results = maintenances(sql, child_params)
         num = len(results)  # 共计几个对象
         paginator = Paginator(results, size)  # 转为限制行数的paginator对象
         queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
@@ -330,9 +341,7 @@ def equipmenttoenginename(request):
             "count": num,
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
-
-        return JsonResponse(data=data)
-
+        return JsonResponse(data=data)  # 对象
 # 设备表、传感器表、传感器类型表、传感器型号表四表级联
 # 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
 def equipmenttosensor3(request):
@@ -348,7 +357,7 @@ def equipmenttosensor3(request):
             page = 1
             size = 5
         a = 'equipment_id=%s'
-        sql_1 = "SELECT * from (SELECT sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
+        sql_1 = "SELECT * from (SELECT sensor.aid,sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
               "FROM equipment_and_sensor " \
               "INNER JOIN sensor " \
               "ON equipment_and_sensor.sensor_id=sensor.aid " \
