@@ -8,6 +8,8 @@ Delete = -1  # 逻辑删除
 on_line = 0  # 在线(在用户厂里）
 stop_run = 1  # 停运(在公司厂里）
 scraped = 2  # 报废
+need_repair = 3  # 报修
+maintenance = 4  # 维护
 
 # 传感器与设备关系
 working = 1  # 传感器在设备工作
@@ -33,7 +35,7 @@ none_efficacy = 0  # 账户已失效
 
 # 传感器状态
 is_using = 1  # 可以使用
-not_using = -1  # 停止使用
+not_using = 0  # 停止使用
 
 # 水质提醒
 wait_deal = 1  # 未处理

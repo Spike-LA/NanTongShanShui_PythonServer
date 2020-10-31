@@ -48,7 +48,7 @@ class Equipment(models.Model):
     equip_person = models.CharField(max_length=50)
     create_time = models.DateTimeField(auto_now_add=True)
     alert_time = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -178,7 +178,7 @@ class SensorModel(models.Model):
 class SensorType(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     type_name = models.CharField(max_length=50)
-    create_time = models.DateField()
+    create_time = models.DateField(auto_now_add=True)
 
     class Meta:
         managed = False

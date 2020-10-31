@@ -9,7 +9,7 @@ class SensorTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SensorType
         fields = '__all__'
-        read_only_fields = ('aid',)
+        read_only_fields = ('aid','create_time')
 
     def create(self, validated_data):
 
@@ -17,7 +17,7 @@ class SensorTypeSerializer(serializers.ModelSerializer):
 
         instance.aid = uuid.uuid4().hex
         instance.type_name = validated_data.get('type_name')
-        instance.create_time = validated_data.get('create_time')
+
 
         instance.save()
 

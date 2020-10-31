@@ -13,7 +13,7 @@ class SensorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sensor
         fields = '__all__'
-        read_only_fields = ('aid', 'sensor_code',)
+        read_only_fields = ('aid', 'sensor_code')
 
     def create(self, validated_data):
 
@@ -40,11 +40,11 @@ class SensorSerializer(serializers.ModelSerializer):
         instance.sensor_threshold = validated_data.get('sensor_threshold', instance.sensor_threshold)
         instance.notice_content = validated_data.get('notice_content', instance.notice_content)
         instance.default_compensation = validated_data.get('default_compensation', instance.default_compensation)
-        instance.sensor_threshold = validated_data.get('theoretical_value', instance.theoretical_value)
+        instance.theoretical_value = validated_data.get('theoretical_value', instance.theoretical_value)
         instance.note = validated_data.get('note', instance.note)
         if validated_data.get('status') == '停止使用':
             instance.status = not_using
         else:
-            pass
+            instance.status = is_using
         instance.save()
         return instance

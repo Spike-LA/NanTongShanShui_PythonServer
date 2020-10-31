@@ -10,7 +10,7 @@ from App.views_constant import working, not_working, stop_run
 
 class EquipmentSerializer(serializers.ModelSerializer):
     # 写了write_only之后这个字段就不会用于存储了
-    equipment_sensor = serializers.CharField(write_only=True)
+    equipment_sensor = serializers.CharField(write_only=True, allow_null=True)
 
     class Meta:
         model = Equipment  # 级联的模型#
@@ -37,18 +37,17 @@ class EquipmentSerializer(serializers.ModelSerializer):
 
         # 设备上的每个传感器id,前端传输格式为"12344,54321"
         ar = validated_data.get('equipment_sensor')
-        print(ar)
-        # split方法对字符串进行分割，然后形成列表
-        arr = ar.split(',')
-        print(arr)
+        if ar != 'False':
+            # split方法对字符串进行分割，然后形成列表
+            arr = ar.split(',')
 
-        for obj in arr:
-            equipment_instance = EquipmentAndSensor()
-            equipment_instance.aid = uuid.uuid4().hex
-            equipment_instance.equipment_id = instance.aid
-            equipment_instance.sensor_id = obj
-            equipment_instance.status = working
-            equipment_instance.save()
+            for obj in arr:
+                equipment_instance = EquipmentAndSensor()
+                equipment_instance.aid = uuid.uuid4().hex
+                equipment_instance.equipment_id = instance.aid
+                equipment_instance.sensor_id = obj
+                equipment_instance.status = working
+                equipment_instance.save()
 
         return instance
 

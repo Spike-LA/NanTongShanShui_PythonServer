@@ -1,6 +1,4 @@
-import datetime
 import json
-import uuid
 
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -13,6 +11,7 @@ from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorMo
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
 from App.serializers.sensor_serializer import SensorSerializer
+from App.views_constant import stop_run
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
@@ -31,7 +30,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
         status = request.GET.get('status')
-        sql = "SELECT * FROM (SELECT sensor.aid,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
+        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.sensor_threshold,sensor.notice_content,sensor.default_compensation,sensor.theoretical_value,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
                       " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
                       " ON sensor_model.aid=sensor.sensor_model_id) AS a"
 
@@ -84,18 +83,18 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
 def operation(request):  # 设备表、调拨表、客户表进行连表操作，显示设备编码、设备状态、客户单位、客户单位所在地区
     # http://10.21.1.106:8000/app/operation/?region=地区&status=设备状态&client_unit=客户单位&page=2&size=2
     if request.method == "GET":
-        page = request.GET.get("page")  # 第几页
-        size = request.GET.get("size")  # 每页多少
-        if not page:
-            page = 1
-            size = 5
-        if not size:
-            page = 1
-            size = 5
+        # page = request.GET.get("page")  # 第几页
+        # size = request.GET.get("size")  # 每页多少
+        # if not page:
+        #     page = 1
+        #     size = 5
+        # if not size:
+        #     page = 1
+        #     size = 5
         region = request.GET.get('region')
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
-        sql_1 = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
+        sql_1 = "SELECT * from (SELECT DISTINCT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
                           "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                           "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
         a = "region=%s"
@@ -137,11 +136,11 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
     else:
         results = maintenances(sql, table)
     num = len(results)  # 共计几个对象
-    paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-    queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+    # paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+    # queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
     data = {
         "count": num,
-        "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        "data": list(results)  # JsonResponse消除返回的结果中带的反斜杠
     }
     return JsonResponse(data=data)  # 对象
 
@@ -204,6 +203,7 @@ def equipmentmaintenance(request):
 
 # 每个用户对应的各个联系人的信息查询
 def clientcontactpeople(request):
+    # http://10.21.1.106:8000/app/ClientContactPeople/?&client_id=&currentPage=2&size=2
     if request.method == 'GET':
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
@@ -216,15 +216,19 @@ def clientcontactpeople(request):
         client_id = request.GET.get('client_id')
         que = ContactPeople.objects.filter(client_id=client_id)
         num = len(que)  # 共计几个对象
-        serializer = ContactPeopleSerializer(instance=que, many=True)
-        data_1 = serializer.data
-        paginator = Paginator(data_1, size)  # 确定分页器对象
-        data_2 = paginator.page(page)  # 当前页的数据
-        data = {
-            "count": num,
-            "data": list(data_2)
-        }
-    return JsonResponse(data=data)
+        if num > 0:
+            serializer = ContactPeopleSerializer(instance=que, many=True)
+            data_1 = serializer.data
+            paginator = Paginator(data_1, size)  # 确定分页器对象
+            data_2 = paginator.page(page)  # 当前页的数据
+            data = {
+                "count": num,
+                "data": list(data_2)
+            }
+        else:
+            data = []
+
+        return JsonResponse(data=data,safe=False)
 
 # 实时监控接口（页面上部）
 def real_time_monitoring_high(request):
@@ -238,7 +242,7 @@ def real_time_monitoring_high(request):
         if not size:
             page = 1
             size = 5
-        sql = "SELECT * from (SELECT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
+        sql = "SELECT * from (SELECT DISTINCT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
                 "client.region,equipment_allocation.client_id FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                 "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
         table = [equipment_id]
@@ -300,7 +304,7 @@ def equipmenttoenginename(request):
         if not size:
             page = 1
             size = 5
-        sql = "SELECT * from (SELECT equipment.status,equipment.equip_person,equipment.aid AS equipment_id,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,main_engine.aid AS engine_id,equipment.storehouse,equipment.storage_location,equipment.note " \
+        sql = "SELECT * from (SELECT DISTINCT equipment.status,equipment.equip_person,equipment.aid AS equipment_id,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,main_engine.aid AS engine_id,equipment.storehouse,equipment.storage_location,equipment.note " \
                 "FROM equipment " \
                 "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
 
@@ -342,6 +346,7 @@ def equipmenttoenginename(request):
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
         return JsonResponse(data=data)  # 对象
+
 # 设备表、传感器表、传感器类型表、传感器型号表四表级联
 # 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
 def equipmenttosensor3(request):
@@ -357,7 +362,7 @@ def equipmenttosensor3(request):
             page = 1
             size = 5
         a = 'equipment_id=%s'
-        sql_1 = "SELECT * from (SELECT sensor.aid,sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
+        sql_1 = "SELECT * from (SELECT DISTINCT sensor.aid,sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
               "FROM equipment_and_sensor " \
               "INNER JOIN sensor " \
               "ON equipment_and_sensor.sensor_id=sensor.aid " \
@@ -431,13 +436,15 @@ def deviceNumtotypename(request):
     if request.method == 'GET':
         equipment_code = request.GET.get('deviceNum')
         query_1 = Equipment.objects.filter(equipment_code=equipment_code).first()  # 通过设备编号查到该设备对象
+        # print(query_1)
         query_2 = EquipmentAndSensor.objects.filter(equipment_id=query_1.aid)
+        # print(query_2)
         table_1 = []
         for obj_1 in query_2:
             table_1.append(obj_1.sensor_id)   # 获取该设备上的各个传感器id
         print(table_1)
 
-        sql = "SELECT * FROM (SELECT sensor.sensor_code,sensor.aid,sensor_type.type_name,sensor_model.sensor_model,sensor.theoretical_value " \
+        sql = "SELECT * FROM (SELECT DISTINCT sensor.sensor_code,sensor.aid,sensor_type.type_name,sensor_model.sensor_model,sensor.theoretical_value " \
               "FROM sensor " \
               "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
               "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid ) " \
@@ -446,7 +453,8 @@ def deviceNumtotypename(request):
         data = []
         for obj_2 in table_1:
             results = maintenances(sql, obj_2)
-            data.append(results[0])
+            if len(results):
+                data.append(results[0])
         return JsonResponse(data=data, safe=False)
 
 # 水质记录查询
@@ -475,7 +483,7 @@ def waterqualitynotice(request):
         b = 'notice_time <= %s'
         c = 'type_name = %s'
 
-        sql_first = "SELECT * FROM (SELECT equipment_id,measurement,water_quality_notice.sensor_id,type_name,sensor.notice_content,water_quality_notice.notice_time " \
+        sql_first = "SELECT * FROM (SELECT DISTINCT equipment_id,measurement,water_quality_notice.sensor_id,type_name,sensor.notice_content,water_quality_notice.notice_time " \
               "FROM water_quality_notice " \
               "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
               "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
@@ -543,7 +551,8 @@ def mainenginecodeandname(request):
             dic['engine_name'] = obj.engine_name
             dic['engine_code'] = obj.engine_code
             dic['status'] = obj.status
-            table.append(dic)
+            if obj.status == '1':
+                table.append(dic)
     return JsonResponse(data=table, safe=False)
 
 # 实时监控界面的设备详情弹窗
@@ -553,7 +562,7 @@ def equipmentdetail(request):
         equipment_id = request.GET.get('equipment_id')
 
         if equipment_id:
-            sql = "SELECT * FROM (SELECT equipment_and_sensor.equipment_id,main_engine.engine_code,main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel,sensor_type.type_name,sensor_model.sensor_model " \
+            sql = "SELECT * FROM (SELECT DISTINCT equipment_and_sensor.equipment_id,main_engine.engine_code,main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel,sensor_type.type_name,sensor_model.sensor_model " \
                   "FROM main_engine INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code " \
                   "INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                   "INNER JOIN client ON equipment_allocation.client_id=client.aid " \
@@ -661,7 +670,7 @@ def sensorcalibrationretrieve(request):
         b = 'calibrate_time<=%s'
         c = 'type_name=%s'
 
-        sql_1 = "SELECT * FROM (SELECT sensor_calibration.calibrate_time,sensor_calibration.actual_value,sensor_calibration.calibrate_compensation,sensor.theoretical_value,sensor_type.type_name,equipment.equipment_code " \
+        sql_1 = "SELECT * FROM (SELECT DISTINCT sensor_calibration.calibrate_time,sensor_calibration.actual_value,sensor_calibration.calibrate_compensation,sensor.theoretical_value,sensor_type.type_name,equipment.equipment_code " \
                 "FROM sensor_calibration " \
                 "INNER JOIN sensor ON sensor_calibration.sensor_id=sensor.aid " \
                 "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
@@ -756,7 +765,7 @@ def waternoticeretrieve(request):
             size = 5
         type_name = request.GET.get('type_name')
         deal_status = request.GET.get('deal_status')
-        sql = "SELECT * FROM (SELECT water_quality_notice.aid,water_quality_notice.deal_status,water_quality_notice.notice_time,water_quality_notice.deal_time,sensor.notice_content,sensor_type.type_name, equipment_and_sensor.equipment_id " \
+        sql = "SELECT * FROM (SELECT DISTINCT water_quality_notice.aid,water_quality_notice.deal_status,water_quality_notice.notice_time,water_quality_notice.deal_time,sensor.notice_content,sensor_type.type_name, equipment_and_sensor.equipment_id " \
                 "FROM water_quality_notice " \
                 "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
                 "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
@@ -816,7 +825,7 @@ def equipmentscrapretrieve(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * FROM (SELECT equipment_scrap.applicant_time,main_engine.engine_code,main_engine.engine_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment_scrap.applicant,equipment_scrap.applicant_tel,equipment.storehouse,equipment.storage_location,equipment.equipment_code,equipment.aid  " \
+        sql_1 = "SELECT * FROM (SELECT DISTINCT equipment_scrap.applicant_time,main_engine.engine_code,main_engine.engine_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment_scrap.applicant,equipment_scrap.applicant_tel,equipment.storehouse,equipment.storage_location,equipment.equipment_code,equipment.aid  " \
                 "FROM equipment_scrap " \
                 "INNER JOIN equipment " \
                 "ON equipment_scrap.equipment_id=equipment.aid " \
@@ -829,6 +838,7 @@ def equipmentscrapretrieve(request):
             sql = sql_1
             table = []
 
+        sql = sql + ' order by applicant_time desc'
         print(sql)
         if len(table) == 0:
             results = maintenance(sql)
@@ -867,7 +877,7 @@ def equipmentconfigurationretrieve(request):
         if end_time_first:
             end_time = end_time_first + time_second_end
 
-        sql = "SELECT * FROM (SELECT equipment.aid,equipment.alert_time,equipment.equip_person,equipment.equipment_code,equipment.storehouse,equipment.storage_location,main_engine.engine_code,main_engine.engine_name " \
+        sql = "SELECT * FROM (SELECT DISTINCT equipment.aid,equipment.alert_time,equipment.equip_person,equipment.equipment_code,equipment.storehouse,equipment.storage_location,main_engine.engine_code,main_engine.engine_name " \
               "FROM equipment " \
               "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
         a = 'alert_time>=%s'
@@ -943,11 +953,11 @@ def equipmentallocationretrieve(request):
         if end_time_first:
             end_time = end_time_first + time_second_end
 
-        sql = "SELECT * FROM (SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
+        sql = "SELECT * FROM (SELECT DISTINCT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
               "FROM equipment_allocation " \
               "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid) AS a "
 
-        sql_1 = "SELECT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
+        sql_1 = "SELECT DISTINCT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
               "FROM equipment_allocation " \
               "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
         a = 'applicant_time>=%s'
@@ -998,3 +1008,25 @@ def equipmentallocationretrieve(request):
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
         return JsonResponse(data=data)  # 对象
+
+@csrf_exempt
+def equipmentallocatefactory(request):
+    # http://10.21.1.106:8000/app/equipment_allocate_factory/
+    if request.method == 'POST':
+        equipment_id = json.loads(request.body.decode().replace("'", "\"")).get('equipment_id')
+        storehouse = json.loads(request.body.decode().replace("'", "\"")).get('storehouse')
+        storage_location = json.loads(request.body.decode().replace("'", "\"")).get('storage_location')
+        print(equipment_id)
+        equipment_obj = Equipment.objects.filter(aid=equipment_id).first()  # 找出调拨回厂的设备对象
+        equipment_obj.status = stop_run  # 设置该设备的状态为停运
+        if storehouse:
+            equipment_obj.storehouse = storehouse
+        if storage_location:
+            equipment_obj.storage_location = storage_location
+        equipment_obj.save()
+
+    data = {
+        'msg': "success"
+    }
+
+    return JsonResponse(data=data)
