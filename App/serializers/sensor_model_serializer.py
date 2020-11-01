@@ -3,6 +3,7 @@ import uuid
 from rest_framework import serializers
 
 from App.models import SensorModel
+from App.views_constant import is_using
 
 
 class SensorModelSerializer(serializers.ModelSerializer):
@@ -21,7 +22,7 @@ class SensorModelSerializer(serializers.ModelSerializer):
         instance.sensor_model = validated_data.get('sensor_model')
         instance.sensor_threshold = validated_data.get('sensor_threshold')
         instance.notice_content = validated_data.get('notice_content')
-
+        instance.states = is_using
         instance.save()
 
         return instance

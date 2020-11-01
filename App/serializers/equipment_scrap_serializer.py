@@ -4,11 +4,14 @@ import uuid
 
 from rest_framework import serializers
 
-from App.models import EquipmentScrap, Equipment
-from App.views_constant import scraped
+from App.models import EquipmentScrap, Equipment, Sensor
+from App.views_constant import scraped, un_using
 
 
 class EquipmentScrapSerializer(serializers.ModelSerializer):
+
+    equipment_sensor = serializers.CharField(write_only=True, allow_null=True)
+
     class Meta:
         model = EquipmentScrap
         fields = '__all__'
@@ -30,6 +33,15 @@ class EquipmentScrapSerializer(serializers.ModelSerializer):
         instance.remark = validated_data.get('remark')
 
         instance.save()
+
+        ar = validated_data.get('equipment_sensor')
+        if ar != 'false':
+            arr = ar.split(',')
+
+            for obj in arr:
+                sensor_obj = Sensor.objects.filter(aid=obj).first()
+                sensor_obj.status = un_using
+                sensor_obj.save()
 
         return instance
 
