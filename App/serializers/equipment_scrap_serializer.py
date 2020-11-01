@@ -32,15 +32,15 @@ class EquipmentScrapSerializer(serializers.ModelSerializer):
         instance.scrapping_reasons = validated_data.get('scrapping_reasons')
         instance.remark = validated_data.get('remark')
 
-        instance.save()
-
         ar = validated_data.get('equipment_sensor')
-        arr = ar.split(',')
+        if ar != 'false':
 
-        for obj in arr:
-            sensor_obj = Sensor.objects.filter(aid=obj).first()
-            sensor_obj.status = un_using
-            sensor_obj.save()
+            arr = ar.split(',')
+
+            for obj in arr:
+                sensor_obj = Sensor.objects.filter(aid=obj).first()
+                sensor_obj.status = un_using
+                sensor_obj.save()
 
         return instance
 
