@@ -34,8 +34,9 @@ activated = 1  # 账户已激活
 none_efficacy = 0  # 账户已失效
 
 # 传感器状态
-is_using = 1  # 可以使用
-not_using = 0  # 停止使用
+is_using = 1  # 正在使用
+not_using = 2  # 未使用
+is_scrap = 0  # 报废
 
 # 水质提醒
 wait_deal = 1  # 未处理

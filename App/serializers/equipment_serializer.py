@@ -5,7 +5,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import Equipment, Sensor, EquipmentAndSensor
-from App.views_constant import working, not_working, stop_run
+from App.views_constant import working, not_working, stop_run, is_scrap, is_using
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
@@ -46,7 +46,6 @@ class EquipmentSerializer(serializers.ModelSerializer):
                 equipment_instance.aid = uuid.uuid4().hex
                 equipment_instance.equipment_id = instance.aid
                 equipment_instance.sensor_id = obj
-                equipment_instance.status = working
                 equipment_instance.save()
 
         return instance
