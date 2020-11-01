@@ -5,7 +5,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import Sensor, SensorCalibration
-from App.views_constant import is_using, not_using
+from App.views_constant import is_using, un_using, sensor_scrap
 
 
 class SensorSerializer(serializers.ModelSerializer):
@@ -42,8 +42,10 @@ class SensorSerializer(serializers.ModelSerializer):
         instance.default_compensation = validated_data.get('default_compensation', instance.default_compensation)
         instance.theoretical_value = validated_data.get('theoretical_value', instance.theoretical_value)
         instance.note = validated_data.get('note', instance.note)
-        if validated_data.get('status') == '停止使用':
-            instance.status = not_using
+        if validated_data.get('status') == '报废':
+            instance.status = sensor_scrap
+        elif validated_data.get('status') == '未使用':
+            instance.status = un_using
         else:
             instance.status = is_using
         instance.save()

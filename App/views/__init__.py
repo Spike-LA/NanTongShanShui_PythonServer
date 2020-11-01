@@ -30,9 +30,10 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
         status = request.GET.get('status')
-        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.sensor_threshold,sensor.notice_content,sensor.default_compensation,sensor.theoretical_value,type_name,sensor_model,note,sensor_code,status FROM sensor_type" \
-                      " INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id INNER JOIN sensor" \
-                      " ON sensor_model.aid=sensor.sensor_model_id) AS a"
+        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.sensor_threshold,sensor.notice_content," \
+              "sensor.default_compensation,sensor.theoretical_value,type_name,sensor_model,note,sensor_code," \
+              "sensor.`status` FROM sensor_type INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id " \
+              "INNER JOIN sensor ON sensor_model.aid=sensor.sensor_model_id) AS a"
 
         a = "type_name=%s"
         b = "sensor_model=%s"
@@ -65,7 +66,6 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
                     sql = sql+' and '+i
         else:
             sql = sql
-        print(sql)
         if len(child_params) == 0:
             results = maintenance(sql)
         else:
@@ -129,6 +129,7 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                     table = [client_unit]
                 else:
                     sql = sql_1
+                    # sql = sql_1 + " where `status`!= 1 AND `status`!= 2 "
                     table = []
 
     if len(table) == 0:
@@ -266,6 +267,7 @@ def sensortype(request):
             data_1 = {}
             data_1['aid'] = obj.aid
             data_1['type_name'] = obj.type_name
+            data_1['state'] = obj.state
             data.append(data_1)
     return JsonResponse(data=data, safe=False)
 
@@ -285,9 +287,11 @@ def sensortypetomodel(request):
                 data_3 = {}
                 data_3['aid'] = obj_2.aid
                 data_3['sensor_model'] = obj_2.sensor_model
+                data_3['states'] = obj_2.states
                 data_2.append(data_3)
 
     return JsonResponse(data=data_2, safe=False)
+
 
 # 设备信息页面的查询和搜索
 def equipmenttoenginename(request):
@@ -555,22 +559,35 @@ def mainenginecodeandname(request):
                 table.append(dic)
     return JsonResponse(data=table, safe=False)
 
-# 实时监控界面的设备详情弹窗
+
+# 实时监控界面的设备详情弹窗(前面五个)
 def equipmentdetail(request):
     # http://10.21.1.106:8000/app/equipment_detail/?equipment_id=
     if request.method == 'GET':
         equipment_id = request.GET.get('equipment_id')
 
         if equipment_id:
-            sql = "SELECT * FROM (SELECT DISTINCT equipment_and_sensor.equipment_id,main_engine.engine_code,main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel,sensor_type.type_name,sensor_model.sensor_model " \
-                  "FROM main_engine INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code " \
-                  "INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                  "INNER JOIN client ON equipment_allocation.client_id=client.aid " \
-                  "INNER JOIN contact_people ON client.aid=contact_people.client_id " \
-                  "INNER JOIN equipment_and_sensor ON equipment.aid=equipment_and_sensor.equipment_id " \
-                  "INNER JOIN sensor ON equipment_and_sensor.sensor_id=sensor.aid " \
-                  "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
-                  "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid) AS a WHERE equipment_id=%s"
+            obj = Equipment.objects.filter(aid=equipment_id).all()
+            if obj:
+                sql = "SELECT * FROM (SELECT DISTINCT equipment_and_sensor.equipment_id,main_engine.engine_code," \
+                      "main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel FROM main_engine " \
+                      "INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code INNER JOIN " \
+                      "equipment_allocation ON equipment.aid=equipment_allocation.equipment_id INNER JOIN " \
+                      "client ON equipment_allocation.client_id=client.aid INNER JOIN contact_people ON " \
+                      "client.aid=contact_people.client_id INNER JOIN equipment_and_sensor ON " \
+                      "equipment.aid=equipment_and_sensor.equipment_id ) AS a WHERE equipment_id=%s"
+            else:
+                sql = "SELECT * FROM (SELECT DISTINCT equipment_and_sensor.equipment_id,main_engine.engine_code," \
+                      "main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel," \
+                      "sensor_type.type_name,sensor_model.sensor_model " \
+                      "FROM main_engine INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code " \
+                      "INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                      "INNER JOIN client ON equipment_allocation.client_id=client.aid " \
+                      "INNER JOIN contact_people ON client.aid=contact_people.client_id " \
+                      "INNER JOIN equipment_and_sensor ON equipment.aid=equipment_and_sensor.equipment_id " \
+                      "INNER JOIN sensor ON equipment_and_sensor.sensor_id=sensor.aid " \
+                      "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+                      "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid) AS a WHERE equipment_id=%s"
             table = [equipment_id]
             data = maintenances(sql, table)
             if len(data) > 0:
@@ -585,6 +602,7 @@ def equipmentdetail(request):
                 'msg': '未发送设备唯一标识'
             }
             return JsonResponse(data=data)
+
 
 @csrf_exempt
 def loginin(request):
@@ -825,7 +843,7 @@ def equipmentscrapretrieve(request):
         if not size:
             page = 1
             size = 5
-        sql_1 = "SELECT * FROM (SELECT DISTINCT equipment_scrap.applicant_time,main_engine.engine_code,main_engine.engine_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment_scrap.applicant,equipment_scrap.applicant_tel,equipment.storehouse,equipment.storage_location,equipment.equipment_code,equipment.aid  " \
+        sql_1 = "SELECT * FROM (SELECT DISTINCT equipment_scrap.applicant_time,main_engine.engine_code,main_engine.engine_name,equipment_scrap.scrapping_reasons,equipment_scrap.remark,equipment_scrap.applicant,equipment_scrap.applicant_tel,equipment.storehouse,equipment.storage_location,equipment.equipment_code,equipment_id,equipment_scrap.aid  " \
                 "FROM equipment_scrap " \
                 "INNER JOIN equipment " \
                 "ON equipment_scrap.equipment_id=equipment.aid " \
@@ -953,11 +971,11 @@ def equipmentallocationretrieve(request):
         if end_time_first:
             end_time = end_time_first + time_second_end
 
-        sql = "SELECT * FROM (SELECT DISTINCT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
+        sql = "SELECT * FROM (SELECT DISTINCT equipment_allocation.aid,equipment_id,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
               "FROM equipment_allocation " \
               "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid) AS a "
 
-        sql_1 = "SELECT DISTINCT equipment.aid,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
+        sql_1 = "SELECT DISTINCT equipment_allocation.aid,equipment_id,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
               "FROM equipment_allocation " \
               "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
         a = 'applicant_time>=%s'

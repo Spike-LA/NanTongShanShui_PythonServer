@@ -169,6 +169,7 @@ class SensorModel(models.Model):
     sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
     create_time = models.DateField(auto_now_add=True)
+    states = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -179,6 +180,7 @@ class SensorType(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     type_name = models.CharField(max_length=50)
     create_time = models.DateField(auto_now_add=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
