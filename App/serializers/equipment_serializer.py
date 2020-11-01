@@ -5,6 +5,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import Equipment, Sensor, EquipmentAndSensor
+
 from App.views_constant import working, stop_run, is_using, un_using
 
 

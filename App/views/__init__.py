@@ -567,8 +567,15 @@ def equipmentdetail(request):
         equipment_id = request.GET.get('equipment_id')
 
         if equipment_id:
-            obj = Equipment.objects.filter(aid=equipment_id).first()
-            if obj:
+            obj = EquipmentAndSensor.objects.filter(equipment_id=equipment_id).all()
+            if not obj:
+                sql = "SELECT * FROM (SELECT DISTINCT equipment.aid AS equipment_id,main_engine.engine_code,main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel " \
+                      "FROM main_engine " \
+                      "INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code " \
+                      "INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                      "INNER JOIN client ON equipment_allocation.client_id=client.aid " \
+                      "INNER JOIN contact_people ON client.aid=contact_people.client_id) AS a WHERE equipment_id=%s"
+            else:
                 sql = "SELECT * FROM (SELECT DISTINCT equipment_and_sensor.equipment_id,main_engine.engine_code," \
                       "main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel," \
                       "sensor_type.type_name,sensor_model.sensor_model " \
@@ -580,14 +587,6 @@ def equipmentdetail(request):
                       "INNER JOIN sensor ON equipment_and_sensor.sensor_id=sensor.aid " \
                       "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
                       "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid) AS a WHERE equipment_id=%s"
-            else:
-                sql = "SELECT * FROM (SELECT DISTINCT equipment_and_sensor.equipment_id,main_engine.engine_code," \
-                      "main_engine.engine_name,contact_people.contact_person,contact_people.contact_tel FROM main_engine " \
-                      "INNER JOIN equipment ON main_engine.engine_code=equipment.engine_code INNER JOIN " \
-                      "equipment_allocation ON equipment.aid=equipment_allocation.equipment_id INNER JOIN " \
-                      "client ON equipment_allocation.client_id=client.aid INNER JOIN contact_people ON " \
-                      "client.aid=contact_people.client_id INNER JOIN equipment_and_sensor ON " \
-                      "equipment.aid=equipment_and_sensor.equipment_id ) AS a WHERE equipment_id=%s"
             table = [equipment_id]
             data = maintenances(sql, table)
             if len(data) > 0:
