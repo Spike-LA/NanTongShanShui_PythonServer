@@ -19,6 +19,7 @@ class Client(models.Model):
     unit_fax = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
     region = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -32,6 +33,7 @@ class ContactPeople(models.Model):
     contact_position = models.CharField(max_length=50)
     contact_tel = models.CharField(max_length=50)
     remark = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -114,7 +116,6 @@ class EquipmentScrap(models.Model):
     class Meta:
         managed = False
         db_table = 'equipment_scrap'
-
 
 
 class MainEngine(models.Model):

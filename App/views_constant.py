@@ -45,3 +45,7 @@ is_dealt = 0  # 已处理
 # 用户状态
 not_Delete = 1  # 未删除
 Delete = -1  # 逻辑删除
+
+# 客户、联系人状态
+on_using = 1  # 未删除
+not_using = -1  # 逻辑删除

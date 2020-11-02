@@ -5,6 +5,7 @@ import uuid
 from rest_framework import serializers
 
 from App.models import Client
+from App.views_constant import on_using
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -28,6 +29,7 @@ class ClientSerializer(serializers.ModelSerializer):
         instance.unit_fax = validated_data.get('unit_fax')
         instance.note = validated_data.get('note')
         instance.region = validated_data.get('region')  # 地区
+        instance.status = on_using
 
         instance.save()
 
