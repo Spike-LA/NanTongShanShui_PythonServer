@@ -148,6 +148,6 @@ REST_FRAMEWORK = {
  'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
 
-# CRONJOBS = [
-#     ('*/5 * * * *','App.task.task')
-# ]
+CRONJOBS = [
+    ('*/5 * * * *','App.task.task')
+]
