@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from django.core.paginator import Paginator
 from django.http import JsonResponse
@@ -400,19 +401,20 @@ def real_time_monitoring_down(request):
         deviceNum = request.GET.get('deviceNum')
         begin_time_first = request.GET.get('begin_time')
         end_time_first = request.GET.get('end_time')
-        time = "T00:00:00.000000Z"
-        # today = datetime.date.today()
-        # oneday = datetime.timedelta(days=1)
-        # tomorrow = today + oneday
+        time_begin = "T00:00:00.000000Z"
+        time_end = "T23:59:59.000000Z"
+        today = datetime.date.today()
+        oneday = datetime.timedelta(days=1)
+        tomorrow = today + oneday
         if not begin_time_first:
             if not end_time_first:
-                # begin_time_first = str(today)
-                # end_time_first = str(tomorrow)
+                begin_time_first = str(today)
+                end_time_first = str(tomorrow)
                 # 数据库只有10月10号的数据,之后完成的时候是用上面两行代码
-                begin_time_first = '2020-10-10'
-                end_time_first = '2020-10-11'
-        begin_time = begin_time_first + time
-        end_time = end_time_first + time
+                # begin_time_first = '2020-10-10'
+                # end_time_first = '2020-10-11'
+        begin_time = begin_time_first + time_begin
+        end_time = end_time_first + time_end
         print(begin_time, end_time)
         sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (deviceNum, begin_time, end_time)
         print(sql)
