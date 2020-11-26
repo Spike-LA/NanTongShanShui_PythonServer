@@ -247,3 +247,13 @@ class PowerRelation(models.Model):
         managed = False
         db_table = 'power_relation'
 
+
+class WebsocketRelation(models.Model):
+    wid = models.AutoField(primary_key=True)
+    websocket_id = models.CharField(max_length=255, blank=True, null=True)
+    object_id = models.CharField(max_length=255, blank=True, null=True)
+    distinguish_code = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'websocket_relation'

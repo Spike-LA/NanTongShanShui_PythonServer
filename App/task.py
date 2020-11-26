@@ -69,7 +69,7 @@ def task():
                 aid = uuid.uuid4().hex
                 notice_time = time.strftime("%Y-%m-%d %H:%M:%S")  # 获取当前时间，并改成对应格式
                 sql_1 = "INSERT water_quality_notice (aid, sensor_id, measurement, notice_time,  deal_status)  " \
-                        "VALUES ('%s', '%s', %s, '%s',1)" % (aid, sensor_id, measurement, notice_time,)
+                        "VALUES ('%s', '%s', '%s', '%s',1)" % (aid, sensor_id, measurement, notice_time,)
                 cursor.execute(sql_1)
                 db.commit()
     # 关闭数据库连接

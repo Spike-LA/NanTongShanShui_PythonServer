@@ -8,7 +8,7 @@ from influxdb_metrics.utils import query
 
 from App.functions.condition_search import maintenances, maintenance
 from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor, Equipment, \
-    EquipmentAndSensor, MainEngine, User, Role, PowerRelation, Power, EquipmentAllocation
+    EquipmentAndSensor, MainEngine, User, Role, PowerRelation, Power, EquipmentAllocation, WebsocketRelation
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
 from App.serializers.sensor_serializer import SensorSerializer
@@ -1068,3 +1068,23 @@ def equipmentallocatefactory(request):
     }
 
     return JsonResponse(data=data)
+
+
+# 前端发送设备对象或用户对象id，返回给前端这个对象的websocket_id（前提是已登录）
+def websocketrelation(request):
+    # http://10.21.1.106:8000/app/websocket_relation/?object_id=&distinguish_code=&
+    if request.method == 'GET':
+        object_id = request.GET.get('object_id')
+        distinguish_code = request.GET.get('distinguish_code')
+        obj = WebsocketRelation.objects.filter(object_id=object_id).filter(distinguish_code=distinguish_code).first()
+        if obj:
+            websocket_id = obj.websocket_id
+            data = {
+                'websocket_id': websocket_id
+            }
+        else:
+            data = {
+                'msg': '该设备/用户未登录'
+            }
+
+    return JsonResponse(data=data,safe=False)
