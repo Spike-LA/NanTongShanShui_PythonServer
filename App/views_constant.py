@@ -49,3 +49,11 @@ Delete = -1  # 逻辑删除
 # 客户、联系人状态
 on_using = 1  # 未删除
 not_using = -1  # 逻辑删除
+
+# 发送状态
+success = 1  # 发送成功
+fail = 0  # 发送失败
+
+# 执行状态
+do_success = 1  # 执行成功
+do_fail = 0  # 执行失败
