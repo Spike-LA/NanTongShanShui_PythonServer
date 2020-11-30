@@ -22,6 +22,7 @@ def chat(ws):
     cursor = db.cursor()
     uid = uuid.uuid4().hex
     usersList.append({"uuid": uid, "ws": ws})  # 如果该用户/设备处于未登录状态，则建立登录状态
+    # ws.send({"ws_id": str(uid)})
     ws.send(uid)
     # 连接时进行登录状态存储（只有websocket_id)
     sql_1 = 'INSERT websocket_relation(websocket_id) VALUES(%s)'
@@ -31,24 +32,13 @@ def chat(ws):
     is_judged = True
     while True:
         msg = ws.receive()
+        print(msg, type(msg))
         if msg:
             msg = loads(msg)  # 将发送的信息转化为json格式
             if database_save:  # 确保新增新的ws对象的操作只执行一次
                 websocket_id = uid
                 object_id = msg['send_id']
                 distinguish_code = msg['distinguish_code']
-                action = msg['action']
-
-            # if msg["aim_id"] == '1' and msg["distinguish_code"] == '1':  # 用户的第一条消息用来识别该用户  "aim_id":"1"
-            #     equipment_id = msg['equipment_id']
-            #     # 将用户的user_id（object_id)和对象识别码与该用户的websocket_id配对并存入数据库
-            #     sql_2 = 'UPDATE websocket_relation SET object_id=%s,distinguish_code=%s, equipment_id=%s WHERE websocket_id=%s'
-            #     table = [object_id, distinguish_code, equipment_id, websocket_id]
-            #     cursor.execute(sql_2, table)
-            #     db.commit()
-            #     for i in usersList:
-            #         if i['uuid'] == msg['aim_id']:  # 找到用户端要发送消息的设备端对象
-            #             i['ws'].send(str(msg['action']))
             if msg["distinguish_code"] == '1':  # 发送方为用户端
                 whetherEquipmentLogin = False
                 command_id = uuid.uuid4().hex
@@ -58,7 +48,7 @@ def chat(ws):
                 cursor.execute(sql_3, equipment_id)
                 results_1 = cursor.fetchall()
                 sql_7 = "INSERT  equipment_operation_log (command_id, operation_time, operation_person_id, " \
-                        "operation_equipment_id, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (command_id, time_now, object_id, equipment_id, action,)
+                        "operation_equipment_id, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (command_id, time_now, object_id, equipment_id, msg['action'],)
                 cursor.execute(sql_7)
                 db.commit()
                 if is_judged:
@@ -129,7 +119,7 @@ def chat(ws):
     for i in usersList:
         if i['ws'] == ws:
             usersList.remove(i)
-    sql_5 = 'SELECT * from websocket_relation where websocket_id=%s'  #########
+    sql_5 = 'SELECT * from websocket_relation where websocket_id=%s'
     cursor.execute(sql_5, uid)
     results_2 = cursor.fetchall()
     if results_2:
