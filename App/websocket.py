@@ -8,7 +8,7 @@ import uuid
 
 usersList = []
 
-@get('/websocket/', apply=[websocket])
+@get('/', apply=[websocket])
 def chat(ws):
     # 连接数据库
     db = pymysql.connect("122.51.80.50", "root", "lab325", "ntss", charset='utf8')
@@ -91,4 +91,4 @@ def chat(ws):
     # 关闭数据库连接
     db.close()
 
-run(host='0.0.0.0', port=9000, server=GeventWebSocketServer)
+run(host='0.0.0.0', port=90, server=GeventWebSocketServer)
