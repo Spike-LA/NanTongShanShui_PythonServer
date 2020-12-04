@@ -32,8 +32,8 @@ def chat(ws):
     is_judged = True
     while True:
         msg = ws.receive()
-        print(msg, type(msg))
         if msg:
+            print(msg, type(msg))
             msg = loads(msg)  # 将发送的信息转化为json格式
             if database_save:  # 确保新增新的ws对象的操作只执行一次
                 websocket_id = uid
@@ -66,7 +66,7 @@ def chat(ws):
                         cursor.execute(sql_4, table)
                         db.commit()
                         for i in usersList:
-                            if i['uuid'] == msg['aim_id']:  # 找到用户端要发送消息的设备端对象
+                            if i['uuid'] == msg['aim_id']:  # 发送用户的ws_id给设备端
                                 i['ws'].send(websocket_id)
                         database_save = False
                 is_judged = False
