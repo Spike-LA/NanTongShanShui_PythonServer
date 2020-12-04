@@ -12,7 +12,6 @@ from App.views_constant import fail, success, do_success, do_fail
 
 usersList = []
 
-
 @get('/', apply=[websocket])
 def chat(ws):
     # 连接数据库
@@ -22,7 +21,6 @@ def chat(ws):
     cursor = db.cursor()
     uid = uuid.uuid4().hex
     usersList.append({"uuid": uid, "ws": ws})  # 如果该用户/设备处于未登录状态，则建立登录状态
-    # ws.send({"ws_id": str(uid)})
     ws.send(uid)
     # 连接时进行登录状态存储（只有websocket_id)
     sql_1 = 'INSERT websocket_relation(websocket_id) VALUES(%s)'
@@ -37,18 +35,18 @@ def chat(ws):
             msg = loads(msg)  # 将发送的信息转化为json格式
             if database_save:  # 确保新增新的ws对象的操作只执行一次
                 websocket_id = uid
-                object_id = msg['send_id']
+                object_id = msg['send_id']  # 设备是code，用户是id
                 distinguish_code = msg['distinguish_code']
             if msg["distinguish_code"] == '1':  # 发送方为用户端
                 whetherEquipmentLogin = False
                 command_id = uuid.uuid4().hex
-                equipment_id = msg['equipment_id']
+                equipment_code = msg['equipment_code']
                 time_now = time.strftime("%Y-%m-%d %H:%M:%S")  # 获取当前时间，并改成对应格式
-                sql_3 = 'SELECT * from websocket_relation where equipment_id=%s'
-                cursor.execute(sql_3, equipment_id)
+                sql_3 = 'SELECT * from websocket_relation where equipment_code=%s'
+                cursor.execute(sql_3, equipment_code)
                 results_1 = cursor.fetchall()
                 sql_7 = "INSERT  equipment_operation_log (command_id, operation_time, operation_person_id, " \
-                        "operation_equipment_id, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (command_id, time_now, object_id, equipment_id, msg['action'],)
+                        "operation_equipment_code, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (command_id, time_now, object_id, equipment_code, msg['action'],)
                 cursor.execute(sql_7)
                 db.commit()
                 if is_judged:
@@ -61,8 +59,8 @@ def chat(ws):
                         break
                     else:
                         # 将用户端的用户id（object_id)和对象识别码与该用户端的websocket_id配对并存入数据库
-                        sql_4 = 'UPDATE websocket_relation SET object_id=%s,distinguish_code=%s,equipment_id=%s WHERE websocket_id=%s'
-                        table = [object_id, distinguish_code, equipment_id, websocket_id]
+                        sql_4 = 'UPDATE websocket_relation SET object_id=%s,distinguish_code=%s,equipment_code=%s WHERE websocket_id=%s'
+                        table = [object_id, distinguish_code, equipment_code, websocket_id]
                         cursor.execute(sql_4, table)
                         db.commit()
                         for i in usersList:
@@ -128,6 +126,5 @@ def chat(ws):
     db.commit()
     # 关闭数据库连接
     db.close()
-
 
 run(host='0.0.0.0', port=90, server=GeventWebSocketServer)

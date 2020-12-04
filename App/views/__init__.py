@@ -1072,11 +1072,11 @@ def equipmentallocatefactory(request):
 
 # 前端发送设备对象或用户对象id，返回给前端这个对象的websocket_id（前提是已登录）
 def websocketrelation(request):
-    # http://10.21.1.106:8000/app/websocket_relation/?object_id=&distinguish_code=&
+    # http://10.21.1.106:8000/app/websocket_relation/?object_code=&distinguish_code=&
     if request.method == 'GET':
-        object_id = request.GET.get('object_id')
+        object_code = request.GET.get('object_code')
         distinguish_code = request.GET.get('distinguish_code')
-        obj = WebsocketRelation.objects.filter(object_id=object_id).filter(distinguish_code=distinguish_code).first()
+        obj = WebsocketRelation.objects.filter(object_code=object_code).filter(distinguish_code=distinguish_code).first()
         if obj:
             websocket_id = obj.websocket_id
             data = {
