@@ -76,7 +76,6 @@ class EquipmentAllocation(models.Model):
         db_table = 'equipment_allocation'
 
 
-
 class EquipmentAndSensor(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     equipment_id = models.CharField(max_length=255)
@@ -253,7 +252,22 @@ class WebsocketRelation(models.Model):
     websocket_id = models.CharField(max_length=255, blank=True, null=True)
     object_id = models.CharField(max_length=255, blank=True, null=True)
     distinguish_code = models.CharField(max_length=255, blank=True, null=True)
+    equipment_id = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'websocket_relation'
+
+
+class EquipmentOperationLog(models.Model):
+    command_id = models.CharField(primary_key=True, max_length=255)
+    operation_time = models.DateTimeField(blank=True, null=True)
+    operation_person_id = models.CharField(max_length=255, blank=True, null=True)
+    operation_equipment_id = models.CharField(max_length=255, blank=True, null=True)
+    operation_id = models.CharField(max_length=255, blank=True, null=True)
+    send_status = models.CharField(max_length=50, blank=True, null=True)
+    operate_status = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'equipment_operation_log'
