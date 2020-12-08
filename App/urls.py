@@ -72,6 +72,7 @@ urlpatterns = [
     path('main_engine_code_and_name/', views.mainenginecodeandname, name='main_engine_code_and_name'),
     path('equipment_detail/', views.equipmentdetail, name='equipment_detail'),
     path('login_in/', views.loginin, name='login_in'),
+    path('logout/', views.logout, name='logout'),
     path('verify/', views.verify, name='verify'),
     path('sensor_calibration_retrieve/', views.sensorcalibrationretrieve, name='sensor_calibration_retrieve'),
     path('role_power/', views.rolepowers, name='role_power'),

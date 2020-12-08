@@ -642,6 +642,11 @@ def loginin(request):
                     'role_id': obj.role_id,
                     'msg': '登陆成功',
                 }
+
+                user_object = User.objects.filter(account=account).first()  # 找到该用户对象
+                user_object.login_status = 1  # 将该用户的登录状态设置为已登录
+                user_object.save()
+
             else:  # 账户存在但密码不正确
                 data = {
                     'msg': '密码不正确',
@@ -1088,3 +1093,13 @@ def websocketrelation(request):
             }
 
     return JsonResponse(data=data,safe=False)
+
+
+def logout(request):
+# http://127.0.0.1:8000/app/logout/?account=
+    if request.method == 'GET':
+        account = request.GET.get('account')
+        user_object = User.objects.filter(account=account).first()  # 找到该用户对象
+        user_object.login_status = -1  # 将该用户的登录状态设置为未登录
+        user_object.save()
+    return
