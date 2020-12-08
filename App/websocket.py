@@ -8,7 +8,6 @@ from bottle_websocket import GeventWebSocketServer
 from bottle_websocket import websocket
 import uuid
 
-from App.views_constant import fail, success, do_success, do_fail
 
 usersList = []
 
@@ -37,6 +36,13 @@ def chat(ws):
                 object_id = msg['send_id']  # 设备是code，用户是id
                 distinguish_code = msg['distinguish_code']
             if msg["distinguish_code"] == '1':  # 发送方为用户端
+                sql_16 = 'SELECT * from user where aid=%s'
+                # 判断是否是已登录用户在操作设备，如果是恶意操作则断开ws连接
+                cursor.execute(sql_16, object_id)
+                results_3 = cursor.fetchall()
+                db.commit()
+                if results_3[12] == '-1':
+                    break
                 whetherEquipmentLogin = False
                 command_id = uuid.uuid4().hex
                 equipment_code = msg['equipment_code']
@@ -52,7 +58,7 @@ def chat(ws):
                     if results_1:
                         ws.send("该设备正在被操作")
                         sql_8 = 'UPDATE equipment_operation_log SET send_status=%s WHERE command_id=%s'  # 有人正在操作该设备，记录发送失败日志
-                        table = [fail, command_id]
+                        table = [0, command_id]
                         cursor.execute(sql_8, table)
                         db.commit()
                         break
@@ -73,13 +79,13 @@ def chat(ws):
                         i['ws'].send(str(msg['action']))
                         whetherEquipmentLogin = True
                         sql_9 = 'UPDATE equipment_operation_log SET send_status=%s WHERE command_id=%s'  # 记录发送成功日志
-                        table = [success, command_id]
+                        table = [1, command_id]
                         cursor.execute(sql_9, table)
                         db.commit()
                         break
                 if not whetherEquipmentLogin:
                     sql_10 = 'UPDATE equipment_operation_log SET send_status=%s WHERE command_id=%s'  # 该设备未登录，记录发送失败日志
-                    table = [fail, command_id]
+                    table = [0, command_id]
                     cursor.execute(sql_10, table)
                     db.commit()
                     ws.send("该设备未登录")
@@ -98,10 +104,10 @@ def chat(ws):
                         i['ws'].send(str(msg['action']))
                         if msg['action'] == '1':
                             sql_12 = 'UPDATE equipment_operation_log SET operate_status=%s WHERE command_id=%s'  # 记录执行成功日志
-                            table = [do_success, command_id]
+                            table = [1, command_id]
                         else:
                             sql_12 = 'UPDATE equipment_operation_log SET operate_status=%s WHERE command_id=%s'  # 记录执行失败日志
-                            table = [do_fail, command_id]
+                            table = [0, command_id]
                         cursor.execute(sql_12, table)
                         db.commit()
                         whetherUserLogin = True
