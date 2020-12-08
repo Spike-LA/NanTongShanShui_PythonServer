@@ -212,6 +212,8 @@ class User(models.Model):
     add_by = models.CharField(max_length=50, blank=True, null=True)
     mod_time = models.DateField(auto_now=True, blank=True, null=True)
     mod_by = models.CharField(max_length=50, blank=True, null=True)
+    client_id = models.CharField(max_length=255, blank=True, null=True)
+    login_status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -252,7 +254,7 @@ class WebsocketRelation(models.Model):
     websocket_id = models.CharField(max_length=255, blank=True, null=True)
     object_id = models.CharField(max_length=255, blank=True, null=True)
     distinguish_code = models.CharField(max_length=255, blank=True, null=True)
-    equipment_id = models.CharField(max_length=255, blank=True, null=True)
+    equipment_code = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False

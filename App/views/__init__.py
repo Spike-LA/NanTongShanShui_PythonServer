@@ -642,6 +642,11 @@ def loginin(request):
                     'role_id': obj.role_id,
                     'msg': '登陆成功',
                 }
+
+                user_object = User.objects.filter(account=account).first()  # 找到该用户对象
+                user_object.login_status = 1  # 将该用户的登录状态设置为已登录
+                user_object.save()
+
             else:  # 账户存在但密码不正确
                 data = {
                     'msg': '密码不正确',
@@ -654,7 +659,7 @@ def loginin(request):
     return JsonResponse(data=data, safe=False)
 
 
-# 前端验证登陆状态时，返回给前端这个账号的所有权限别名
+# 前端验证登陆状态时，返回给前端这个账号的所有权限别名以及该用户所关联的客户id
 def verify(request):
     # http://127.0.0.1:8000/app/verify/?user_id=&role_id=
     if request.method == 'GET':
@@ -662,6 +667,7 @@ def verify(request):
         role_id = request.GET.get('role_id')
         query_role_power = PowerRelation.objects.filter(aim_id=role_id)
         query_user_power = PowerRelation.objects.filter(aim_id=user_id)
+        obj = User.objects.filter(aid=user_id).first()
         list_power_id = []
         list_power_num = []
 
@@ -678,6 +684,7 @@ def verify(request):
         data = {
             'count': len(list_power_num),
             'power_num': list_power_num,
+            'client_id': obj.client_id
         }
 
     return JsonResponse(data=data, safe=False)
@@ -1047,6 +1054,7 @@ def equipmentallocationretrieve(request):
         }
         return JsonResponse(data=data)  # 对象
 
+
 @csrf_exempt
 def equipmentallocatefactory(request):
     # http://10.21.1.106:8000/app/equipment_allocate_factory/
@@ -1076,7 +1084,7 @@ def websocketrelation(request):
     if request.method == 'GET':
         object_code = request.GET.get('object_code')
         distinguish_code = request.GET.get('distinguish_code')
-        obj = WebsocketRelation.objects.filter(object_code=object_code).filter(distinguish_code=distinguish_code).first()
+        obj = WebsocketRelation.objects.filter(object_id=object_code).filter(distinguish_code=distinguish_code).first()
         if obj:
             websocket_id = obj.websocket_id
             data = {
@@ -1087,4 +1095,14 @@ def websocketrelation(request):
                 'msg': '该设备/用户未登录'
             }
 
-    return JsonResponse(data=data,safe=False)
+    return JsonResponse(data=data, safe=False)
+
+
+def logout(request):
+# http://127.0.0.1:8000/app/logout/?account=
+    if request.method == 'GET':
+        account = request.GET.get('account')
+        user_object = User.objects.filter(account=account).first()  # 找到该用户对象
+        user_object.login_status = -1  # 将该用户的登录状态设置为未登录
+        user_object.save()
+    return

@@ -8,9 +8,8 @@ from bottle_websocket import GeventWebSocketServer
 from bottle_websocket import websocket
 import uuid
 
-from App.views_constant import fail, success, do_success, do_fail
-
 usersList = []
+
 
 @get('/', apply=[websocket])
 def chat(ws):
@@ -31,13 +30,19 @@ def chat(ws):
     while True:
         msg = ws.receive()
         if msg:
-            print(msg, type(msg))
             msg = loads(msg)  # 将发送的信息转化为json格式
             if database_save:  # 确保新增新的ws对象的操作只执行一次
                 websocket_id = uid
                 object_id = msg['send_id']  # 设备是code，用户是id
                 distinguish_code = msg['distinguish_code']
             if msg["distinguish_code"] == '1':  # 发送方为用户端
+                sql_16 = 'SELECT * from user where aid=%s'
+                # 判断是否是已登录用户在操作设备，如果是恶意操作则断开ws连接
+                cursor.execute(sql_16, object_id)
+                results_3 = cursor.fetchall()
+                db.commit()
+                if results_3[12] == '-1':
+                    break
                 whetherEquipmentLogin = False
                 command_id = uuid.uuid4().hex
                 equipment_code = msg['equipment_code']
@@ -46,14 +51,15 @@ def chat(ws):
                 cursor.execute(sql_3, equipment_code)
                 results_1 = cursor.fetchall()
                 sql_7 = "INSERT  equipment_operation_log (command_id, operation_time, operation_person_id, " \
-                        "operation_equipment_code, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (command_id, time_now, object_id, equipment_code, msg['action'],)
+                        "operation_equipment_code, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (
+                        command_id, time_now, object_id, equipment_code, msg['action'],)
                 cursor.execute(sql_7)
                 db.commit()
                 if is_judged:
                     if results_1:
                         ws.send("该设备正在被操作")
                         sql_8 = 'UPDATE equipment_operation_log SET send_status=%s WHERE command_id=%s'  # 有人正在操作该设备，记录发送失败日志
-                        table = [fail, command_id]
+                        table = [0, command_id]
                         cursor.execute(sql_8, table)
                         db.commit()
                         break
@@ -64,7 +70,7 @@ def chat(ws):
                         cursor.execute(sql_4, table)
                         db.commit()
                         for i in usersList:
-                            if i['uuid'] == msg['aim_id']:  # 发送用户的ws_id给设备端
+                            if i['uuid'] == msg['aim_id']:  # 找到用户端要发送消息的设备端对象
                                 i['ws'].send(websocket_id)
                         database_save = False
                 is_judged = False
@@ -74,13 +80,13 @@ def chat(ws):
                         i['ws'].send(str(msg['action']))
                         whetherEquipmentLogin = True
                         sql_9 = 'UPDATE equipment_operation_log SET send_status=%s WHERE command_id=%s'  # 记录发送成功日志
-                        table = [success, command_id]
+                        table = [1, command_id]
                         cursor.execute(sql_9, table)
                         db.commit()
                         break
                 if not whetherEquipmentLogin:
                     sql_10 = 'UPDATE equipment_operation_log SET send_status=%s WHERE command_id=%s'  # 该设备未登录，记录发送失败日志
-                    table = [fail, command_id]
+                    table = [0, command_id]
                     cursor.execute(sql_10, table)
                     db.commit()
                     ws.send("该设备未登录")
@@ -99,10 +105,10 @@ def chat(ws):
                         i['ws'].send(str(msg['action']))
                         if msg['action'] == '1':
                             sql_12 = 'UPDATE equipment_operation_log SET operate_status=%s WHERE command_id=%s'  # 记录执行成功日志
-                            table = [do_success, command_id]
+                            table = [1, command_id]
                         else:
                             sql_12 = 'UPDATE equipment_operation_log SET operate_status=%s WHERE command_id=%s'  # 记录执行失败日志
-                            table = [do_fail, command_id]
+                            table = [0, command_id]
                         cursor.execute(sql_12, table)
                         db.commit()
                         whetherUserLogin = True
@@ -126,5 +132,6 @@ def chat(ws):
     db.commit()
     # 关闭数据库连接
     db.close()
+
 
 run(host='0.0.0.0', port=90, server=GeventWebSocketServer)

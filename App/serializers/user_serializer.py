@@ -4,7 +4,7 @@ from datetime import datetime
 from rest_framework import serializers
 
 from App.models import User, PowerRelation, Power
-from App.views_constant import not_Delete
+from App.views_constant import not_Delete, out
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -30,8 +30,10 @@ class UserSerializer(serializers.ModelSerializer):
         instance.password = validated_data.get('password')
         instance.telephone_num = validated_data.get('telephone_num')
         instance.status = not_Delete
+        instance.login_status = out
         instance.role_id = validated_data.get('role_id')
         instance.add_by = validated_data.get('add_by')
+        instance.client_id = validated_data.get('client_id')
 
         instance.save()
         return instance
