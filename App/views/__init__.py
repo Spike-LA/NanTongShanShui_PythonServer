@@ -1094,8 +1094,8 @@ def websocketrelation(request):
             data = {
                 'msg': '该设备/用户未登录'
             }
-
     return JsonResponse(data=data, safe=False)
+
 
 
 def logout(request):

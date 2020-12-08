@@ -8,6 +8,7 @@ from bottle_websocket import GeventWebSocketServer
 from bottle_websocket import websocket
 import uuid
 
+
 usersList = []
 
 
@@ -51,8 +52,7 @@ def chat(ws):
                 cursor.execute(sql_3, equipment_code)
                 results_1 = cursor.fetchall()
                 sql_7 = "INSERT  equipment_operation_log (command_id, operation_time, operation_person_id, " \
-                        "operation_equipment_code, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (
-                        command_id, time_now, object_id, equipment_code, msg['action'],)
+                        "operation_equipment_code, operation_id) VALUES ('%s', '%s','%s', '%s', '%s')" % (command_id, time_now, object_id, equipment_code, msg['action'],)
                 cursor.execute(sql_7)
                 db.commit()
                 if is_judged:
@@ -132,6 +132,5 @@ def chat(ws):
     db.commit()
     # 关闭数据库连接
     db.close()
-
 
 run(host='0.0.0.0', port=90, server=GeventWebSocketServer)
