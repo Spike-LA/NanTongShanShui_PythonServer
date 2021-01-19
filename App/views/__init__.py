@@ -1,6 +1,7 @@
 import json
 import datetime
 
+
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -351,6 +352,7 @@ def equipmenttoenginename(request):
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
         return JsonResponse(data=data)  # 对象
+
 
 # 设备表、传感器表、传感器类型表、传感器型号表四表级联
 # 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
@@ -1095,7 +1097,6 @@ def websocketrelation(request):
                 'msg': '该设备/用户未登录'
             }
     return JsonResponse(data=data, safe=False)
-
 
 
 def logout(request):
