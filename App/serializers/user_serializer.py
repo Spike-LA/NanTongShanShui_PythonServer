@@ -44,6 +44,7 @@ class UserSerializer(serializers.ModelSerializer):
         instance.telephone_num = validated_data.get('telephone_num', instance.telephone_num)
         instance.role_id = validated_data.get('role_id', instance.role_id)
         instance.mod_by = validated_data.get('mod_by', instance.mod_by)
+        instance.client_id = validated_data.get('client_id',instance.client_id)
         instance.save()
 
         alter_power = validated_data.get('alter_power')

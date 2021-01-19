@@ -149,5 +149,7 @@ REST_FRAMEWORK = {
 }
 
 CRONJOBS = [
-    ('*/5 * * * *','App.task.task')
+    ('*/5 * * * *','App.task.task'),
+    ('*/1 * * * *','App.task2.task')
 ]
+
