@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'werkzeug_debugger_runserver',
     'django_extensions',
     'sslserver',
-    'django_crontab',
+    # 'django_crontab',
 ]
 
 INFLUXDB_HOST = "122.51.173.123"
@@ -149,5 +149,7 @@ REST_FRAMEWORK = {
 }
 
 CRONJOBS = [
-    ('*/5 * * * *','App.task.task')
+    ('*/5 * * * *','App.task.task'),
+    ('*/1 * * * *','App.task2.task')
 ]
+

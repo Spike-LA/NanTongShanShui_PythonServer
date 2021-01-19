@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 
 import pymysql
@@ -22,16 +23,22 @@ def chat(ws):
     uid = uuid.uuid4().hex
     usersList.append({"uuid": uid, "ws": ws})  # 如果该用户/设备处于未登录状态，则建立登录状态
     ws.send(uid)
+    # 获取当前时间
+    now = datetime.now()
+    update_time = now.strftime('%Y-%m-%d %H:%M:%S')
     # 连接时进行登录状态存储（只有websocket_id)
-    sql_1 = 'INSERT websocket_relation(websocket_id) VALUES(%s)'
-    cursor.execute(sql_1, uid)
+    sql_1 = 'INSERT websocket_relation(websocket_id,update_time) VALUES(%s,%s)'
+    table = [uid,update_time]
+    cursor.execute(sql_1,table)
     db.commit()
     database_save = True
     is_judged = True
+    # print(usersList)
     while True:
         msg = ws.receive()
         if msg:
             msg = loads(msg)  # 将发送的信息转化为json格式
+            print(msg)
             if database_save:  # 确保新增新的ws对象的操作只执行一次
                 websocket_id = uid
                 object_id = msg['send_id']  # 设备是code，用户是id
@@ -42,7 +49,7 @@ def chat(ws):
                 cursor.execute(sql_16, object_id)
                 results_3 = cursor.fetchall()
                 db.commit()
-                if results_3[12] == '-1':
+                if results_3[0][12] == '-1':
                     break
                 whetherEquipmentLogin = False
                 command_id = uuid.uuid4().hex
@@ -100,6 +107,16 @@ def chat(ws):
             elif msg["aim_id"] != '0' and msg["distinguish_code"] == '0':  # 发送方为设备端
                 whetherUserLogin = False
                 database_save = False
+                # 设备告知服务器，它现在是正常工作的
+                if msg['action'] == '666':
+                    # 获取当前时间
+                    now = datetime.now()
+                    update_time = now.strftime('%Y-%m-%d %H:%M:%S')
+                    # 更新设备的update_time
+                    sql_17 = 'UPDATE websocket_relation SET update_time=%s WHERE websocket_id=%s'
+                    table = [update_time,websocket_id]
+                    cursor.execute(sql_17,table)
+                    db.commit()
                 for i in usersList:
                     if i['uuid'] == msg['aim_id']:  # 找到设备端要发送消息的用户端对象
                         i['ws'].send(str(msg['action']))
@@ -132,5 +149,6 @@ def chat(ws):
     db.commit()
     # 关闭数据库连接
     db.close()
+
 
 run(host='0.0.0.0', port=90, server=GeventWebSocketServer)

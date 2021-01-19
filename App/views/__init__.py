@@ -95,43 +95,107 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         region = request.GET.get('region')
         status = request.GET.get('status')
         client_unit = request.GET.get('client_unit')
-        sql_1 = "SELECT * from (SELECT DISTINCT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
+        client_id = request.GET.get('client_id')
+        sql_1 = "SELECT * from (SELECT DISTINCT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit,client.aid as client_id," \
                           "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
                           "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
         a = "region=%s"
         b = "status=%s"
         c = "client_unit=%s"
+        d = "client_id=%s"
+        # if region:
+        #     if status:
+        #         if client_unit:
+        #             sql = sql_1 + " where "+a+" and "+b+" and "+c
+        #             table = [region, status, client_unit]
+        #         else:
+        #             sql = sql_1 + " where "+a+" and "+b
+        #             table = [region, status]
+        #     else:
+        #         if client_unit:
+        #             sql = sql_1 + " where "+a+" and "+c
+        #             table = [region, client_unit]
+        #         else:
+        #             sql = sql_1 + " where " + a
+        #             table = [region]
+        # else:
+        #     if status:
+        #         if client_unit:
+        #             sql = sql_1 + " where " + b + " and " + c
+        #             table = [status, client_unit]
+        #         else:
+        #             sql = sql_1 + " where " + b
+        #             table = [status]
+        #     else:
+        #         if client_unit:
+        #             sql = sql_1 + " where " + c
+        #             table = [client_unit]
+        #         else:
+        #             sql = sql_1
+        #             # sql = sql_1 + " where `status`!= 1 AND `status`!= 2 "
+        #             table = []
         if region:
             if status:
                 if client_unit:
-                    sql = sql_1 + " where "+a+" and "+b+" and "+c
-                    table = [region, status, client_unit]
+                    if client_id: #1111
+                        sql = sql_1 + " where "+a+" and "+b+" and "+c+" and "+d
+                        table=[region, status, client_unit,client_id]
+                    else:#1110
+                        sql = sql_1 + " where " + a + " and " + b + " and " + c
+                        table = [region, status, client_unit]
                 else:
-                    sql = sql_1 + " where "+a+" and "+b
-                    table = [region, status]
+                    if client_id: #1101
+                        sql = sql_1 + " where "+a+" and "+b+" and "+d
+                        table=[region, status, client_id]
+                    else:#1100
+                        sql = sql_1 + " where " + a + " and " + b
+                        table = [region, status]
             else:
                 if client_unit:
-                    sql = sql_1 + " where "+a+" and "+c
-                    table = [region, client_unit]
+                    if client_id: #1011
+                        sql = sql_1 + " where "+a+" and "+c+" and "+d
+                        table=[region,client_unit,client_id]
+                    else:#1010
+                        sql = sql_1 + " where " + a + " and " + c
+                        table = [region,client_unit]
                 else:
-                    sql = sql_1 + " where " + a
-                    table = [region]
+                    if client_id: #1001
+                        sql = sql_1 + " where "+a+" and "+d
+                        table=[region,client_id]
+                    else:#1000
+                        sql = sql_1 + " where " + a
+                        table = [region]
         else:
             if status:
                 if client_unit:
-                    sql = sql_1 + " where " + b + " and " + c
-                    table = [status, client_unit]
+                    if client_id:  # 0111
+                        sql = sql_1 + " where " + b + " and " + c + " and " + d
+                        table = [status, client_unit, client_id]
+                    else:  # 0110
+                        sql = sql_1 + " where " + b + " and " + c
+                        table = [status, client_unit]
                 else:
-                    sql = sql_1 + " where " + b
-                    table = [status]
+                    if client_id:  # 0101
+                        sql = sql_1 + " where " +b + " and " + d
+                        table = [status, client_id]
+                    else:  # 0100
+                        sql = sql_1 + " where " + b
+                        table = [status]
             else:
                 if client_unit:
-                    sql = sql_1 + " where " + c
-                    table = [client_unit]
+                    if client_id:  # 0011
+                        sql = sql_1 + " where " + c + " and " + d
+                        table = [client_unit, client_id]
+                    else:  # 0010
+                        sql = sql_1 + " where " + c
+                        table = [client_unit]
                 else:
-                    sql = sql_1
-                    # sql = sql_1 + " where `status`!= 1 AND `status`!= 2 "
-                    table = []
+                    if client_id:  # 0001
+                        sql = sql_1 + " where "+ d
+                        table = [client_id]
+                    else:  # 0000
+                        sql = sql_1
+                        table=[]
 
     if len(table) == 0:
         results = maintenance(sql)
@@ -417,7 +481,6 @@ def real_time_monitoring_down(request):
         end_time = end_time_first + time_end
         print(begin_time, end_time)
         sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (deviceNum, begin_time, end_time)
-        print(sql)
         data = query(sql)
         if data:
             for result_list in data:
@@ -1099,10 +1162,13 @@ def websocketrelation(request):
 
 
 def logout(request):
-# http://127.0.0.1:8000/app/logout/?account=
+# http://127.0.0.1:8000/app/logout/?user_id=
     if request.method == 'GET':
-        account = request.GET.get('account')
-        user_object = User.objects.filter(account=account).first()  # 找到该用户对象
+        user_id = request.GET.get('user_id')
+        user_object = User.objects.filter(aid=user_id).first()  # 找到该用户对象
         user_object.login_status = -1  # 将该用户的登录状态设置为未登录
         user_object.save()
-    return
+        data = {
+            'msg':'登出成功'
+        }
+    return JsonResponse(data=data,safe=False)
