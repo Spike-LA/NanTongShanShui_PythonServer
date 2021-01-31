@@ -4,14 +4,15 @@ from datetime import datetime
 
 from rest_framework import serializers
 
-from App.models import Equipment, Sensor, EquipmentAndSensor
+from App.models import Equipment, Sensor, EquipmentAndSensor, Pump
 
-from App.views_constant import working, stop_run, is_using, un_using
+from App.views_constant import working, stop_run, is_using, un_using, equipped, not_equipped
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
     # 写了write_only之后这个字段就不会用于存储了
     equipment_sensor = serializers.CharField(write_only=True, allow_null=True)
+    equipment_pump = serializers.CharField(write_only=True, allow_null=True)
 
     class Meta:
         model = Equipment  # 级联的模型#
@@ -52,6 +53,18 @@ class EquipmentSerializer(serializers.ModelSerializer):
                 sensor_obj.save()
                 equipment_instance.status = working
                 equipment_instance.save()
+
+        # 设备上装配的每个泵的id，前端传输格式为"12344,54321"
+        br = validated_data.get('equipment_pump')
+        if br != 'false':
+            # split方法对字符串进行分割，然后形成列表
+            brr = br.split(',')
+
+            for pump_obj_id in brr:
+                pump_obj = Pump.objects.filter(pump_id=pump_obj_id).first() # 找到装配的泵对象
+                pump_obj.equipment_code = instance.equipment_code
+                pump_obj.status = equipped
+                pump_obj.save()
 
         return instance
 
@@ -94,4 +107,21 @@ class EquipmentSerializer(serializers.ModelSerializer):
                 equipment_instance.status = working
                 equipment_instance.save()
 
+         # 获取更新后设备上装配的泵的id
+        br = validated_data.get('equipment_pump')
+        if br != 'false':
+            # split方法对字符串进行分割，然后形成列表
+            brr = br.split(',')
+        # 获取原来的泵，并修改它们的状态以及将它们从泵上撤下来
+        old_equipped_pump_query = Pump.objects.filter(equipment_code=instance.equipment_code)
+        for old_pump_object in old_equipped_pump_query:
+            old_pump_object.status = not_equipped
+            old_pump_object.equipment_code = ''
+            old_pump_object.save()
+
+        for new_pump_obj_id in brr:
+            new_pump_obj = Pump.objects.filter(pump_id=new_pump_obj_id).first()  # 找到装配的泵对象
+            new_pump_obj.equipment_code = instance.equipment_code
+            new_pump_obj.status = equipped
+            new_pump_obj.save()
         return instance

@@ -61,3 +61,16 @@ fail = 0  # 发送失败
 # 执行状态
 do_success = 1  # 执行成功
 do_fail = 0  # 执行失败
+
+#泵的状态
+not_equipped = 0  # 刚创建未装配
+equipped = 1 # 已装配
+is_delete = 2 # 已报废
+
+#泵的自动操作状态
+opration_not_finish = 0  # 操作未执行完成
+opration_finish = 1  # 操作已执行完成
+
+#泵的自动操作类型
+time_operation = 0 # 定时操作
+regular_operation = 1 # 周期性操作
