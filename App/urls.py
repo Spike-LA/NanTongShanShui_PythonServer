@@ -81,6 +81,7 @@ urlpatterns = [
     path('equipment_configuration_retrieve/', views.equipmentconfigurationretrieve, name='equipment_configuration_retrieve'),
     path('equipment_allocation_retrieve/', views.equipmentallocationretrieve, name='equipment_allocation_retrieve'),
     path('equipment_allocate_factory/', views.equipmentallocatefactory, name='equipment_allocate_factory'),
-    path('websocket_relation/',views.websocketrelation, name='websocket_relation')
+    path('websocket_relation/',views.websocketrelation, name='websocket_relation'),
+    path('export_excel/',views.exportexcel, name='export_excel')
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]

@@ -1,7 +1,7 @@
 import json
 import datetime
 
-
+import xlwt
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -65,7 +65,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
             else:
                 sql = sql + ' where ' + child_sql[0]
                 for i in child_sql[1:]:
-                    sql = sql+' and '+i
+                    sql = sql + ' and ' + i
         else:
             sql = sql
         if len(child_params) == 0:
@@ -98,8 +98,8 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         client_unit = request.GET.get('client_unit')
         client_id = request.GET.get('client_id')
         sql_1 = "SELECT * from (SELECT DISTINCT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit,client.aid as client_id," \
-                          "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                          "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
+                "client.region FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+                "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a"
         a = "region=%s"
         b = "status=%s"
         c = "client_unit=%s"
@@ -138,32 +138,32 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
         if region:
             if status:
                 if client_unit:
-                    if client_id: #1111
-                        sql = sql_1 + " where "+a+" and "+b+" and "+c+" and "+d
-                        table=[region, status, client_unit,client_id]
-                    else:#1110
+                    if client_id:  # 1111
+                        sql = sql_1 + " where " + a + " and " + b + " and " + c + " and " + d
+                        table = [region, status, client_unit, client_id]
+                    else:  # 1110
                         sql = sql_1 + " where " + a + " and " + b + " and " + c
                         table = [region, status, client_unit]
                 else:
-                    if client_id: #1101
-                        sql = sql_1 + " where "+a+" and "+b+" and "+d
-                        table=[region, status, client_id]
-                    else:#1100
+                    if client_id:  # 1101
+                        sql = sql_1 + " where " + a + " and " + b + " and " + d
+                        table = [region, status, client_id]
+                    else:  # 1100
                         sql = sql_1 + " where " + a + " and " + b
                         table = [region, status]
             else:
                 if client_unit:
-                    if client_id: #1011
-                        sql = sql_1 + " where "+a+" and "+c+" and "+d
-                        table=[region,client_unit,client_id]
-                    else:#1010
+                    if client_id:  # 1011
+                        sql = sql_1 + " where " + a + " and " + c + " and " + d
+                        table = [region, client_unit, client_id]
+                    else:  # 1010
                         sql = sql_1 + " where " + a + " and " + c
-                        table = [region,client_unit]
+                        table = [region, client_unit]
                 else:
-                    if client_id: #1001
-                        sql = sql_1 + " where "+a+" and "+d
-                        table=[region,client_id]
-                    else:#1000
+                    if client_id:  # 1001
+                        sql = sql_1 + " where " + a + " and " + d
+                        table = [region, client_id]
+                    else:  # 1000
                         sql = sql_1 + " where " + a
                         table = [region]
         else:
@@ -177,7 +177,7 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                         table = [status, client_unit]
                 else:
                     if client_id:  # 0101
-                        sql = sql_1 + " where " +b + " and " + d
+                        sql = sql_1 + " where " + b + " and " + d
                         table = [status, client_id]
                     else:  # 0100
                         sql = sql_1 + " where " + b
@@ -192,11 +192,11 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                         table = [client_unit]
                 else:
                     if client_id:  # 0001
-                        sql = sql_1 + " where "+ d
+                        sql = sql_1 + " where " + d
                         table = [client_id]
                     else:  # 0000
                         sql = sql_1
-                        table=[]
+                        table = []
 
     if len(table) == 0:
         results = maintenance(sql)
@@ -214,7 +214,6 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
 
 # 用于查询单个设备的维护报修记录
 def equipmentmaintenance(request):
-
     if request.method == "GET":
         begin_time = request.GET.get('begin_time')
         end_time = request.GET.get('end_time')
@@ -232,30 +231,32 @@ def equipmentmaintenance(request):
         if not begin_time:
             if not end_time:
                 if maintain_cause:  # 通过维护原因查找 001
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(
+                        equipment_id=equipment_id).filter(maintain_cause=maintain_cause)
                 else:  # 无条件查找 000
                     que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id)
             else:
                 if maintain_cause:  # 通过维护原因和end_time查找 011
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).\
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id). \
                         filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
                 else:  # 通过end_time查找 010
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter \
                         (repair_time__lte=end_time)
         else:
             if not end_time:
                 if maintain_cause:  # 通过维护原因和begin_time查找 101
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter \
                         (repair_time__gte=begin_time).filter(maintain_cause=maintain_cause)
                 else:  # 通过begin_time查找 100
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter \
                         (repair_time__gte=begin_time)
             else:
                 if maintain_cause:  # 通过维护原因和时间范围查找 111
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
-                        (repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(maintain_cause=maintain_cause)
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter \
+                        (repair_time__gte=begin_time).filter(repair_time__lte=end_time).filter(
+                        maintain_cause=maintain_cause)
                 else:  # 通过end_time、begin_time查找 110
-                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter\
+                    que = EquipmentMaintenance.objects.order_by('-repair_time').filter(equipment_id=equipment_id).filter \
                         (repair_time__gte=begin_time).filter(repair_time__lte=end_time)
         num = len(que)  # 共计几个对象
         serializer = EquipmentMaintenanceSerializer(instance=que, many=True)  # 利用序列化器将查询集转化为有序字典
@@ -267,6 +268,7 @@ def equipmentmaintenance(request):
             "data": list(data_2)
         }
     return JsonResponse(data=data)
+
 
 # 每个用户对应的各个联系人的信息查询
 def clientcontactpeople(request):
@@ -295,7 +297,8 @@ def clientcontactpeople(request):
         else:
             data = []
 
-        return JsonResponse(data=data,safe=False)
+        return JsonResponse(data=data, safe=False)
+
 
 # 实时监控接口（页面上部）
 def real_time_monitoring_high(request):
@@ -310,8 +313,8 @@ def real_time_monitoring_high(request):
             page = 1
             size = 5
         sql = "SELECT * from (SELECT DISTINCT equipment.aid,equipment.status,equipment.equipment_code,client.client_unit," \
-                "client.region,equipment_allocation.client_id FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
-                "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
+              "client.region,equipment_allocation.client_id FROM equipment INNER JOIN equipment_allocation ON equipment.aid=equipment_allocation.equipment_id " \
+              "INNER JOIN client ON equipment_allocation.client_id=client.aid) AS a where aid =%s"
         table = [equipment_id]
         result = maintenances(sql, table)
         num = len(result)  # 共计几个对象
@@ -336,6 +339,7 @@ def sensortype(request):
             data_1['state'] = obj.state
             data.append(data_1)
     return JsonResponse(data=data, safe=False)
+
 
 # 用于获取对应传感器类型下的传感器型号和型号id
 def sensortypetomodel(request):
@@ -375,8 +379,8 @@ def equipmenttoenginename(request):
             page = 1
             size = 5
         sql = "SELECT * from (SELECT DISTINCT equipment.status,equipment.equip_person,equipment.aid AS equipment_id,equipment.engine_code,equipment.equipment_code,main_engine.engine_name,main_engine.aid AS engine_id,equipment.storehouse,equipment.storage_location,equipment.note " \
-                "FROM equipment " \
-                "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
+              "FROM equipment " \
+              "INNER JOIN main_engine ON equipment.engine_code=main_engine.engine_code) AS a "
 
         a = "engine_code=%s"
         b = "equipment_code=%s"
@@ -434,15 +438,15 @@ def equipmenttosensor3(request):
             size = 5
         a = 'equipment_id=%s'
         sql_1 = "SELECT * from (SELECT DISTINCT sensor.aid,sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
-              "FROM equipment_and_sensor " \
-              "INNER JOIN sensor " \
-              "ON equipment_and_sensor.sensor_id=sensor.aid " \
-              "INNER JOIN sensor_model " \
-              "ON sensor.sensor_model_id=sensor_model.aid " \
-              "INNER JOIN sensor_type " \
-              "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
+                "FROM equipment_and_sensor " \
+                "INNER JOIN sensor " \
+                "ON equipment_and_sensor.sensor_id=sensor.aid " \
+                "INNER JOIN sensor_model " \
+                "ON sensor.sensor_model_id=sensor_model.aid " \
+                "INNER JOIN sensor_type " \
+                "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
         if equipment_id:
-            sql = sql_1+" where "+a
+            sql = sql_1 + " where " + a
             table = [equipment_id]
         else:
             sql = sql_1
@@ -460,6 +464,7 @@ def equipmenttosensor3(request):
             "data": list(queryset)
         }
         return JsonResponse(data=data)
+
 
 # 与时序数据库进行交互操作
 def real_time_monitoring_down(request):
@@ -482,14 +487,17 @@ def real_time_monitoring_down(request):
         begin_time = begin_time_first + time_begin
         end_time = end_time_first + time_end
         print(begin_time, end_time)
-        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (deviceNum, begin_time, end_time)
+        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (
+            deviceNum, begin_time, end_time)
         data = query(sql)
+        print(data)
         if data:
             for result_list in data:
                 return JsonResponse(data=result_list, safe=False)
         else:
             table = []
             return JsonResponse(data=table, safe=False)
+
 
 # 通过传感器型号aid给前端发送对应的传感器的全局id和编码
 def sensormodeltocode(request):
@@ -500,6 +508,7 @@ def sensormodeltocode(request):
         serializer = SensorSerializer(instance=que, many=True)
         data = serializer.data
     return JsonResponse(data=data, safe=False)
+
 
 # 通过设备编码获取对应设备上的传感器的aid,类型,标定理论值
 def deviceNumtotypename(request):
@@ -512,7 +521,7 @@ def deviceNumtotypename(request):
         # print(query_2)
         table_1 = []
         for obj_1 in query_2:
-            table_1.append(obj_1.sensor_id)   # 获取该设备上的各个传感器id
+            table_1.append(obj_1.sensor_id)  # 获取该设备上的各个传感器id
         print(table_1)
 
         sql = "SELECT * FROM (SELECT DISTINCT sensor.sensor_code,sensor.aid,sensor_type.type_name,sensor_model.sensor_model,sensor.theoretical_value " \
@@ -527,6 +536,7 @@ def deviceNumtotypename(request):
             if len(results):
                 data.append(results[0])
         return JsonResponse(data=data, safe=False)
+
 
 # 水质记录查询
 def waterqualitynotice(request):
@@ -547,20 +557,20 @@ def waterqualitynotice(request):
         time_second_first = 'T00:00:00'
         time_second_end = 'T23:59:59'
         if begin_time_first:
-            begin_time = begin_time_first+time_second_first
+            begin_time = begin_time_first + time_second_first
         if end_time_first:
-            end_time = end_time_first+time_second_end
+            end_time = end_time_first + time_second_end
         a = 'notice_time >= %s'
         b = 'notice_time <= %s'
         c = 'type_name = %s'
 
         sql_first = "SELECT * FROM (SELECT DISTINCT equipment_id,measurement,water_quality_notice.sensor_id,type_name,sensor.notice_content,water_quality_notice.notice_time " \
-              "FROM water_quality_notice " \
-              "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
-              "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
-              "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid " \
-              "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
-              "INNER JOIN equipment ON equipment.aid=equipment_and_sensor.equipment_id) AS a WHERE equipment_id=%s"
+                    "FROM water_quality_notice " \
+                    "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
+                    "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+                    "INNER JOIN sensor_type ON sensor_model.sensor_type_id=sensor_type.aid " \
+                    "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
+                    "INNER JOIN equipment ON equipment.aid=equipment_and_sensor.equipment_id) AS a WHERE equipment_id=%s"
 
         if not equipment_id:
             data = {
@@ -571,13 +581,13 @@ def waterqualitynotice(request):
         if begin_time_first:
             if end_time_first:
                 if type_name:  # 111
-                    sql = sql_first+' and '+a +' and '+b+' and '+c
+                    sql = sql_first + ' and ' + a + ' and ' + b + ' and ' + c
                     table = [equipment_id, begin_time, end_time, type_name]
                 else:  # 110
                     sql = sql_first + ' and ' + a + ' and ' + b
                     table = [equipment_id, begin_time, end_time]
             else:
-                if type_name: # 101
+                if type_name:  # 101
                     sql = sql_first + ' and ' + a + ' and ' + c
                     table = [equipment_id, begin_time, type_name]
                 else:  # 100
@@ -585,20 +595,19 @@ def waterqualitynotice(request):
                     table = [equipment_id, begin_time]
         else:
             if end_time_first:
-                if type_name: # 011
-                    sql = sql_first +' and ' + b + ' and ' + c
+                if type_name:  # 011
+                    sql = sql_first + ' and ' + b + ' and ' + c
                     table = [equipment_id, end_time, type_name]
                 else:  # 010
-                    sql = sql_first +' and ' + b
+                    sql = sql_first + ' and ' + b
                     table = [equipment_id, end_time]
             else:
                 if type_name:  # 001
-                    sql = sql_first +' and '+c
+                    sql = sql_first + ' and ' + c
                     table = [equipment_id, type_name]
                 else:  # 000
                     sql = sql_first
                     table = [equipment_id]
-
 
         results = maintenances(sql, table)
         num = len(results)  # 共计几个对象
@@ -754,6 +763,7 @@ def verify(request):
 
     return JsonResponse(data=data, safe=False)
 
+
 # 通过前端发送的设备编号，将设备对应传感器的类型、标定时间、标定理论值、标定实际值返回给前端
 def sensorcalibrationretrieve(request):
     # http: // 127.0.0.1:8000/app/sensor_calibration_retrieve/?deviceNum=&currentPage=&size=&type_name=&begin_time=&end_time=
@@ -791,13 +801,13 @@ def sensorcalibrationretrieve(request):
         if begin_time_first:
             if end_time_first:
                 if type_name:  # 111
-                    sql = sql_1+' and '+a+' and '+b+' and '+c
+                    sql = sql_1 + ' and ' + a + ' and ' + b + ' and ' + c
                     table = [equipment_code, begin_time, end_time, type_name]
                 else:  # 110
                     sql = sql_1 + ' and ' + a + ' and ' + b
                     table = [equipment_code, begin_time, end_time]
             else:
-                if type_name: # 101
+                if type_name:  # 101
                     sql = sql_1 + ' and ' + a + ' and ' + c
                     table = [equipment_code, begin_time, type_name]
                 else:  # 100
@@ -807,7 +817,7 @@ def sensorcalibrationretrieve(request):
         else:
             if end_time_first:
                 if type_name:  # 011
-                    sql = sql_1+' and '+b+' and '+c
+                    sql = sql_1 + ' and ' + b + ' and ' + c
                     table = [equipment_code, end_time, type_name]
                 else:  # 010
                     sql = sql_1 + ' and ' + b
@@ -829,6 +839,7 @@ def sensorcalibrationretrieve(request):
             "data": list(queryset)
         }
         return JsonResponse(data=data)  # 对象
+
 
 # 通过角色id查找角色对应的所有权限
 def rolepowers(request):
@@ -876,12 +887,12 @@ def waternoticeretrieve(request):
         type_name = request.GET.get('type_name')
         deal_status = request.GET.get('deal_status')
         sql = "SELECT * FROM (SELECT DISTINCT water_quality_notice.aid,water_quality_notice.deal_status,water_quality_notice.notice_time,water_quality_notice.deal_time,sensor.notice_content,sensor_type.type_name, equipment_and_sensor.equipment_id " \
-                "FROM water_quality_notice " \
-                "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
-                "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
-                "INNER JOIN sensor_type ON sensor_type.aid=sensor_model.sensor_type_id " \
-                "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
-                "INNER JOIN equipment ON equipment_and_sensor.equipment_id=equipment.aid) AS a WHERE equipment_id=%s"
+              "FROM water_quality_notice " \
+              "INNER JOIN sensor ON water_quality_notice.sensor_id=sensor.aid " \
+              "INNER JOIN sensor_model ON sensor.sensor_model_id=sensor_model.aid " \
+              "INNER JOIN sensor_type ON sensor_type.aid=sensor_model.sensor_type_id " \
+              "INNER JOIN equipment_and_sensor ON sensor.aid=equipment_and_sensor.sensor_id " \
+              "INNER JOIN equipment ON equipment_and_sensor.equipment_id=equipment.aid) AS a WHERE equipment_id=%s"
 
         a = 'notice_time>=%s'
         b = 'notice_time<=%s'
@@ -907,7 +918,7 @@ def waternoticeretrieve(request):
         number = len(child_sql)
         if number > 0:
             for i in child_sql:
-                sql = sql+' and '+i
+                sql = sql + ' and ' + i
         sql = sql + e
         if len(child_params) == 0:
             results = maintenance(sql)
@@ -921,6 +932,7 @@ def waternoticeretrieve(request):
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
         return JsonResponse(data=data)  # 对象
+
 
 # 设备报废的查询和搜索
 def equipmentscrapretrieve(request):
@@ -962,6 +974,7 @@ def equipmentscrapretrieve(request):
             "data": list(queryset)
         }
         return JsonResponse(data=data)
+
 
 # 设备配置记录查询和搜索
 def equipmentconfigurationretrieve(request):
@@ -1015,15 +1028,15 @@ def equipmentconfigurationretrieve(request):
         if length == 0:
             pass
         elif length == 1:
-            sql = sql+' where '+child_sql[0]
+            sql = sql + ' where ' + child_sql[0]
         else:
             n = 1
             for i in child_sql:
                 if n == 1:
-                    sql = sql+' where '+i
+                    sql = sql + ' where ' + i
                     n += 1
                 else:
-                    sql = sql+' and '+i
+                    sql = sql + ' and ' + i
 
         sql = sql + ' order by alert_time desc'
 
@@ -1039,6 +1052,7 @@ def equipmentconfigurationretrieve(request):
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
         return JsonResponse(data=data)  # 对象
+
 
 # 设备调拨记录查询和搜索
 def equipmentallocationretrieve(request):
@@ -1068,8 +1082,8 @@ def equipmentallocationretrieve(request):
               "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid) AS a "
 
         sql_1 = "SELECT DISTINCT equipment_allocation.aid,equipment_id,equipment.equipment_code,equipment.`status`,equipment_allocation.applicant_time,equipment_allocation.applicant,equipment_allocation.transfer_unit,equipment_allocation.transfer_unit_tel,equipment_allocation.transfer_unit_ads,equipment_allocation.allocation_reason,applicant_tel,equipment_allocation.remark " \
-              "FROM equipment_allocation " \
-              "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
+                "FROM equipment_allocation " \
+                "INNER JOIN equipment ON equipment_allocation.equipment_id=equipment.aid"
         a = 'applicant_time>=%s'
         b = 'applicant_time<=%s'
         c = 'transfer_unit=%s'
@@ -1163,13 +1177,67 @@ def websocketrelation(request):
 
 
 def logout(request):
-# http://127.0.0.1:8000/app/logout/?user_id=
+    # http://127.0.0.1:8000/app/logout/?user_id=
     if request.method == 'GET':
         user_id = request.GET.get('user_id')
         user_object = User.objects.filter(aid=user_id).first()  # 找到该用户对象
         user_object.login_status = -1  # 将该用户的登录状态设置为未登录
         user_object.save()
         data = {
-            'msg':'登出成功'
+            'msg': '登出成功'
         }
-    return JsonResponse(data=data,safe=False)
+    return JsonResponse(data=data, safe=False)
+
+
+# 将时序数据库中的数据以Excel的形式导出
+@csrf_exempt
+def exportexcel(request):
+    if request.method == 'POST':
+        deviceNum = json.loads(request.body.decode().replace("'", "\"")).get('deviceNum')
+        begin_time_first = json.loads(request.body.decode().replace("'", "\"")).get('begin_time')
+        end_time_first = json.loads(request.body.decode().replace("'", "\"")).get('end_time')
+        time_begin = "T00:00:00.000000Z"
+        time_end = "T23:59:59.000000Z"
+        today = datetime.date.today()
+        oneday = datetime.timedelta(days=1)
+        tomorrow = today + oneday
+        if not begin_time_first:
+            if not end_time_first:
+                begin_time_first = str(today)
+                end_time_first = str(tomorrow)
+                # begin_time_first = '2020-10-10'
+                # end_time_first = '2020-10-11'
+        begin_time = begin_time_first + time_begin
+        end_time = end_time_first + time_end
+        print(begin_time, end_time)
+        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (
+            deviceNum, begin_time, end_time)
+        data = query(sql)
+        for obj in data:
+            result_list = obj
+            sum = len(result_list)
+        # excel导出0.1版本
+        row0 = ["检测时间", "电导率传感器", "ORP传感器", "PH传感器", "温度传感器"]
+        workbook = xlwt.Workbook(encoding='utf-8')  # 创建工作簿
+
+        worksheet = workbook.add_sheet('Sheet1')  # 添加名为Sheet1的工作表
+
+        worksheet.write(0, 0, "设备编号")
+
+        worksheet.write(1, 0, deviceNum)
+
+        for i in range(0, len(row0)):  # 生成第一行
+            worksheet.write(2, i, row0[i])
+        num = 0
+        while num < sum:
+            for obj in result_list:
+                del obj['deviceNum']
+                res = [obj[key] for key in obj]
+                for i in range(0, len(res)):
+                    worksheet.write(num + 3, i, res[i])
+                num += 1
+        workbook.save('C:/Users/kaiss/Desktop/sensor.xls')
+        message = {
+            'msg': '导出成功'
+        }
+        return JsonResponse(data=message, safe=False)
