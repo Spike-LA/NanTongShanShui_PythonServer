@@ -20,7 +20,8 @@ class SensorSerializer(serializers.ModelSerializer):
         instance = Sensor()
         instance.aid = uuid.uuid4().hex
         instance.sensor_model_id = validated_data.get('sensor_model_id')
-        instance.sensor_threshold = validated_data.get('sensor_threshold')
+        instance.sensor_threshold = validated_data.get('high_sensor_threshold')
+        instance.sensor_threshold = validated_data.get('down_sensor_threshold')
         instance.notice_content = validated_data.get('notice_content')
         instance.default_compensation = validated_data.get('default_compensation')
         instance.create_time = validated_data.get('create_time')
@@ -37,7 +38,8 @@ class SensorSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        instance.sensor_threshold = validated_data.get('sensor_threshold', instance.sensor_threshold)
+        instance.high_sensor_threshold = validated_data.get('high_sensor_threshold', instance.sensor_threshold)
+        instance.down_sensor_threshold = validated_data.get('down_sensor_threshold', instance.sensor_threshold)
         instance.notice_content = validated_data.get('notice_content', instance.notice_content)
         instance.default_compensation = validated_data.get('default_compensation', instance.default_compensation)
         instance.theoretical_value = validated_data.get('theoretical_value', instance.theoretical_value)

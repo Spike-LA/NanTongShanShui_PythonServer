@@ -9,11 +9,11 @@ from influxdb_metrics.utils import query
 
 from App.functions.condition_search import maintenances, maintenance
 from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor, Equipment, \
-    EquipmentAndSensor, MainEngine, User, Role, PowerRelation, Power, EquipmentAllocation, WebsocketRelation
+    EquipmentAndSensor, MainEngine, User, Role, PowerRelation, Power, EquipmentAllocation, WebsocketRelation, Pump
 from App.serializers.contact_people_serializer import ContactPeopleSerializer
 from App.serializers.equipment_maintenance_serializer import EquipmentMaintenanceSerializer
 from App.serializers.sensor_serializer import SensorSerializer
-from App.views_constant import stop_run
+from App.views_constant import stop_run, equipped
 
 
 def type_model(request):  # 设备类型与设备型号进行连表搜索，显示类型名、型号名、状态、备注。用原生sql分页并转换为分页对象再格式化成json传给前端
@@ -198,17 +198,18 @@ def operation(request):  # 设备表、调拨表、客户表进行连表操作�
                         sql = sql_1
                         table = []
 
-    if len(table) == 0:
-        results = maintenance(sql)
-    else:
-        results = maintenances(sql, table)
-    num = len(results)  # 共计几个对象
-    # paginator = Paginator(results, size)  # 转为限制行数的paginator对象
-    # queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
-    data = {
-        "count": num,
-        "data": list(results)  # JsonResponse消除返回的结果中带的反斜杠
-    }
+        if len(table) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, table)
+        num = len(results)  # 共计几个对象
+        # paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        # queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(results)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+
     return JsonResponse(data=data)  # 对象
 
 
@@ -423,22 +424,26 @@ def equipmenttoenginename(request):
 
 
 # 设备表、传感器表、传感器类型表、传感器型号表四表级联
-# 用于通过设备id给前端传输对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
+# 用于通过设备id(用户端)给前端传输对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
+# 用于通过设备code(硬件端)给硬件传输(修改)对应设备上的传感器编码、传感器型号、传感器类型、默认阈值
 def equipmenttosensor3(request):
     # http://10.21.1.106:8000/app/equipment_to_sensor3/?equipment_id=&currentPage=&size=
     if request.method == 'GET':
         equipment_id = request.GET.get('equipment_id')
+        equipment_code = request.GET.get('equipment_code')
         page = request.GET.get("currentPage")  # 第几页
         size = request.GET.get("size")  # 每页多少
         if not page:
             page = 1
-            size = 5
         if not size:
-            page = 1
             size = 5
         a = 'equipment_id=%s'
-        sql_1 = "SELECT * from (SELECT DISTINCT sensor.aid,sensor.sensor_code,sensor_model.sensor_model,sensor_model.sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id " \
+        b = 'equipment_code=%s'
+        sql_1 = "SELECT * from (SELECT DISTINCT sensor_type.unit,sensor.aid,sensor.sensor_code,sensor_model.sensor_model," \
+                "sensor.high_sensor_threshold,sensor.down_sensor_threshold,sensor_type.type_name,equipment_and_sensor.equipment_id,equipment_code,equipment_and_sensor.sensor_id " \
                 "FROM equipment_and_sensor " \
+                "INNER JOIN equipment " \
+                "ON equipment.aid=equipment_and_sensor.equipment_id " \
                 "INNER JOIN sensor " \
                 "ON equipment_and_sensor.sensor_id=sensor.aid " \
                 "INNER JOIN sensor_model " \
@@ -446,8 +451,11 @@ def equipmenttosensor3(request):
                 "INNER JOIN sensor_type " \
                 "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
         if equipment_id:
-            sql = sql_1 + " where " + a
+            sql = sql_1+" where "+a
             table = [equipment_id]
+        elif equipment_code:
+            sql = sql_1 + " where " + b
+            table = [equipment_code]
         else:
             sql = sql_1
             table = []
@@ -760,7 +768,6 @@ def verify(request):
             'power_num': list_power_num,
             'client_id': obj.client_id
         }
-
     return JsonResponse(data=data, safe=False)
 
 
@@ -1189,6 +1196,104 @@ def logout(request):
     return JsonResponse(data=data, safe=False)
 
 
+def getequippedpump1(request):
+# http://127.0.0.1:8000/app/get_equipped_pump/?equipment_code=
+    if request.method == 'GET':
+        equipment_code = request.GET.get('equipment_code')
+        if equipment_code:
+            pump_query = Pump.objects.filter(status=equipped).filter(equipment_code=equipment_code)
+            if pump_query:
+                pump_object_list = []
+                for object in pump_query:
+                    dic = {}
+                    dic['pump_name'] = object.pump_name
+                    dic['pump_code'] = object.pump_code
+                    dic['fluid_flow'] = object.fluid_flow
+                    dic['note'] = object.note
+                    pump_object_list.append(dic)
+                data = {
+                    'msg': '获取成功',
+                    'count':len(pump_object_list),
+                    'pump_object_list':pump_object_list,
+                }
+            else:
+                data = {
+                    'msg':'未获取到该设备上的泵'
+                }
+        else:
+            pump_query = Pump.objects.filter(status=equipped)
+            if pump_query:
+                pump_object_list = []
+                for object in pump_query:
+                    dic = {}
+                    dic['pump_id'] = object.pump_id
+                    dic['equipment_code'] = object.equipment_code
+                    dic['pump_name'] = object.pump_name
+                    dic['pump_code'] = object.pump_code
+                    dic['fluid_flow'] = object.fluid_flow
+                    dic['note'] = object.note
+                    pump_object_list.append(dic)
+                data = {
+                    'msg': '获取成功',
+                    'count': len(pump_object_list),
+                    'pump_object_list': pump_object_list,
+                }
+            else:
+                data = {
+                    'msg': '目前没有可分配权限的泵'
+                }
+    return JsonResponse(data=data, safe=False)
+
+
+def pumpanduser1(request):
+    if request.method == 'GET':
+        user_id = request.GET.get('user_id')
+        pump_id = request.GET.get('pump_id')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+
+        sql_1 = "SELECT * FROM (SELECT permission_id,user_id,pump_permission.pump_id,pump.pump_code,pump_name,equipment_code,fluid_flow,pump.`status` as pump_status,account,`name` as user_name, user.`status`AS user_status,role.role_name " \
+                "FROM pump_permission " \
+              "INNER JOIN pump ON pump_permission.pump_id=pump.pump_id " \
+              "INNER JOIN `user` ON pump_permission.user_id=user.aid " \
+              "INNER JOIN role ON role.aid=user.role_id) as a"
+
+        table_1 = []
+        table_2 = []
+        if user_id:
+            table_1.append("user_id=%s")
+            table_2.append(user_id)
+        if pump_id:
+            table_1.append("pump_id=%s")
+            table_2.append(pump_id)
+
+        if len(table_1) == 0:
+            sql = sql_1
+        elif len(table_1) == 1:
+            sql = sql_1 + " where "+table_1[0]
+        else:
+            sql = sql_1 + " where "+table_1[0]+ " and "+table_2[1]
+
+        if len(table_1) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, table_2)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+    return JsonResponse(data=data)  # 对象
+
+
 # 将时序数据库中的数据以Excel的形式导出
 @csrf_exempt
 def exportexcel(request):
@@ -1236,7 +1341,7 @@ def exportexcel(request):
                 for i in range(0, len(res)):
                     worksheet.write(num + 3, i, res[i])
                 num += 1
-        workbook.save('C:/Users/kaiss/Desktop/sensor.xls')
+        workbook.save('C:/Users/kaiss/Desktop/sensor.xls') # 本机的桌面
         message = {
             'msg': '导出成功'
         }
