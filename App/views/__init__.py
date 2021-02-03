@@ -451,7 +451,7 @@ def equipmenttosensor3(request):
                 "INNER JOIN sensor_type " \
                 "ON sensor_model.sensor_type_id=sensor_type.aid) AS a "
         if equipment_id:
-            sql = sql_1+" where "+a
+            sql = sql_1 + " where " + a
             table = [equipment_id]
         elif equipment_code:
             sql = sql_1 + " where " + b
@@ -495,7 +495,7 @@ def real_time_monitoring_down(request):
         begin_time = begin_time_first + time_begin
         end_time = end_time_first + time_end
         print(begin_time, end_time)
-        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (
+        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s' " % (
             deviceNum, begin_time, end_time)
         data = query(sql)
         print(data)
@@ -1197,7 +1197,7 @@ def logout(request):
 
 
 def getequippedpump1(request):
-# http://127.0.0.1:8000/app/get_equipped_pump/?equipment_code=
+    # http://127.0.0.1:8000/app/get_equipped_pump/?equipment_code=
     if request.method == 'GET':
         equipment_code = request.GET.get('equipment_code')
         if equipment_code:
@@ -1213,12 +1213,12 @@ def getequippedpump1(request):
                     pump_object_list.append(dic)
                 data = {
                     'msg': '获取成功',
-                    'count':len(pump_object_list),
-                    'pump_object_list':pump_object_list,
+                    'count': len(pump_object_list),
+                    'pump_object_list': pump_object_list,
                 }
             else:
                 data = {
-                    'msg':'未获取到该设备上的泵'
+                    'msg': '未获取到该设备上的泵'
                 }
         else:
             pump_query = Pump.objects.filter(status=equipped)
@@ -1260,9 +1260,9 @@ def pumpanduser1(request):
 
         sql_1 = "SELECT * FROM (SELECT permission_id,user_id,pump_permission.pump_id,pump.pump_code,pump_name,equipment_code,fluid_flow,pump.`status` as pump_status,account,`name` as user_name, user.`status`AS user_status,role.role_name " \
                 "FROM pump_permission " \
-              "INNER JOIN pump ON pump_permission.pump_id=pump.pump_id " \
-              "INNER JOIN `user` ON pump_permission.user_id=user.aid " \
-              "INNER JOIN role ON role.aid=user.role_id) as a"
+                "INNER JOIN pump ON pump_permission.pump_id=pump.pump_id " \
+                "INNER JOIN `user` ON pump_permission.user_id=user.aid " \
+                "INNER JOIN role ON role.aid=user.role_id) as a"
 
         table_1 = []
         table_2 = []
@@ -1276,9 +1276,9 @@ def pumpanduser1(request):
         if len(table_1) == 0:
             sql = sql_1
         elif len(table_1) == 1:
-            sql = sql_1 + " where "+table_1[0]
+            sql = sql_1 + " where " + table_1[0]
         else:
-            sql = sql_1 + " where "+table_1[0]+ " and "+table_2[1]
+            sql = sql_1 + " where " + table_1[0] + " and " + table_2[1]
 
         if len(table_1) == 0:
             results = maintenance(sql)
@@ -1301,6 +1301,8 @@ def exportexcel(request):
         deviceNum = json.loads(request.body.decode().replace("'", "\"")).get('deviceNum')
         begin_time_first = json.loads(request.body.decode().replace("'", "\"")).get('begin_time')
         end_time_first = json.loads(request.body.decode().replace("'", "\"")).get('end_time')
+        sensor_type = json.loads(request.body.decode().replace("'", "\"")).get('sensor_type')
+
         time_begin = "T00:00:00.000000Z"
         time_end = "T23:59:59.000000Z"
         today = datetime.date.today()
@@ -1314,34 +1316,56 @@ def exportexcel(request):
                 # end_time_first = '2020-10-11'
         begin_time = begin_time_first + time_begin
         end_time = end_time_first + time_end
-        print(begin_time, end_time)
+
         sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (
             deviceNum, begin_time, end_time)
         data = query(sql)
+        result_list = []
         for obj in data:
             result_list = obj
-            sum = len(result_list)
+        sum = len(result_list)
         # excel导出0.1版本
-        row0 = ["检测时间", "电导率传感器", "ORP传感器", "PH传感器", "温度传感器"]
+        # row0 = ["检测时间", "电导率传感器", "ORP传感器", "PH传感器", "温度传感器"]
+        row1 = ["检测时间", "电导率传感器"]
+        row2 = ["检测时间", "ORP传感器"]
+        row3 = ["检测时间", "PH传感器"]
+        row4 = ["检测时间", "温度传感器"]
         workbook = xlwt.Workbook(encoding='utf-8')  # 创建工作簿
 
         worksheet = workbook.add_sheet('Sheet1')  # 添加名为Sheet1的工作表
+
+        worksheet.col(0).width = 256 * 20  # Set the column width
+
+        worksheet.col(1).width = 256 * 20  # Set the column width
 
         worksheet.write(0, 0, "设备编号")
 
         worksheet.write(1, 0, deviceNum)
 
-        for i in range(0, len(row0)):  # 生成第一行
-            worksheet.write(2, i, row0[i])
+        if sensor_type == 'conduct':
+            for i in range(0, len(row1)):  # 生成第一行
+                worksheet.write(2, i, row1[i])
+        elif sensor_type == 'orp':
+            for i in range(0, len(row2)):  # 生成第一行
+                worksheet.write(2, i, row2[i])
+        elif sensor_type == 'ph':
+            for i in range(0, len(row3)):  # 生成第一行
+                worksheet.write(2, i, row3[i])
+        elif sensor_type == 'temper':
+            for i in range(0, len(row4)):  # 生成第一行
+                worksheet.write(2, i, row4[i])
+        else:
+            pass
         num = 0
-        while num < sum:
+        while num < sum:  # 生产数据行
             for obj in result_list:
-                del obj['deviceNum']
-                res = [obj[key] for key in obj]
+                sensor_names = {'time', sensor_type}
+                p2 = {key: value for key, value in obj.items() if key in sensor_names}
+                res = [obj[key] for key in p2]
                 for i in range(0, len(res)):
                     worksheet.write(num + 3, i, res[i])
                 num += 1
-        workbook.save('C:/Users/kaiss/Desktop/sensor.xls') # 本机的桌面
+        workbook.save('D:/sensor_%s.xls' % (sensor_type))  # 本机的桌面'C:/Users/kaiss/Desktop/sensor_%s.xls'
         message = {
             'msg': '导出成功'
         }
