@@ -1302,6 +1302,7 @@ def exportexcel(request):
         begin_time_first = json.loads(request.body.decode().replace("'", "\"")).get('begin_time')
         end_time_first = json.loads(request.body.decode().replace("'", "\"")).get('end_time')
         sensor_type = json.loads(request.body.decode().replace("'", "\"")).get('sensor_type')
+        url = json.loads(request.body.decode().replace("'", "\"")).get('url')
 
         time_begin = "T00:00:00.000000Z"
         time_end = "T23:59:59.000000Z"
@@ -1365,7 +1366,7 @@ def exportexcel(request):
                 for i in range(0, len(res)):
                     worksheet.write(num + 3, i, res[i])
                 num += 1
-        workbook.save('D:/sensor_%s.xls' % (sensor_type))  # 本机的桌面'C:/Users/kaiss/Desktop/sensor_%s.xls'
+        workbook.save(url + '/sensor_%s.xls' % (sensor_type))  # 本机的桌面'C:/Users/kaiss/Desktop/sensor_%s.xls'
         message = {
             'msg': '导出成功'
         }
