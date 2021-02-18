@@ -26,6 +26,7 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+SECURE_SSL_REDIRECT = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,6 +40,10 @@ INSTALLED_APPS = [
     'influxdb_metrics',
     'django_filters',
     'corsheaders',
+    'werkzeug_debugger_runserver',
+    'django_extensions',
+    'sslserver',
+    # 'django_crontab',
 ]
 
 INFLUXDB_HOST = "122.51.173.123"
@@ -89,9 +94,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ntss',
-        'HOST': '10.21.1.58',
+        'HOST': '122.51.80.50',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': 'lab325',
         'PORT': 3306,
     }
 }
@@ -142,3 +147,9 @@ CORS_ORIGIN_ALLOW_ALL = True
 REST_FRAMEWORK = {
  'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
+
+CRONJOBS = [
+    ('*/5 * * * *','App.task.task'),
+    ('*/1 * * * *','App.task2.task')
+]
+

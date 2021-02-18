@@ -3,7 +3,8 @@ import uuid
 from rest_framework import serializers
 
 from App.models import EquipmentMaintenance, Equipment
-from App.views_constant import wait_maintenance, not_stop_maintenance
+from App.views_constant import wait_maintenance, not_stop_maintenance, routine_maintenance, maintenance, \
+    need_repair, finish_maintenance, on_line
 
 
 class EquipmentMaintenanceSerializer(serializers.ModelSerializer):
@@ -21,15 +22,14 @@ class EquipmentMaintenanceSerializer(serializers.ModelSerializer):
         instance.maintain_cause = validated_data.get('maintain_cause')
         instance.maintain_result = wait_maintenance  # 设置维护结果为等待维护
         instance.maintain_status = not_stop_maintenance  # 设置维护状态为维护未结束
-
-        # if instance.maintain_cause == routine_maintenance:  # 如果维护原因是例行维护
-        #     instance_1 = Equipment.objects.filter(aid=instance.equipment_id).first()  # 找到维护设备对象
-        #     instance_1.status = maintenance  # 设置设备表中的设备状态为维护
-        #     instance_1.save()
-        # else:  # 如果维护原因是用户报修或者运维报修
-        #     instance_1 = Equipment.objects.filter(aid=instance.equipment_id).first()  # 找到报修设备对象
-        #     instance_1.status = need_repair  # 设置设备表中的设备状态为报修
-        #     instance_1.save()
+        if instance.maintain_cause == routine_maintenance:  # 如果维护原因是例行维护
+            instance_1 = Equipment.objects.filter(aid=instance.equipment_id).first()  # 找到维护设备对象
+            instance_1.status = maintenance  # 设置设备表中的设备状态为维护
+            instance_1.save()
+        else:  # 如果维护原因是用户报修或者运维报修
+            instance_1 = Equipment.objects.filter(aid=instance.equipment_id).first()  # 找到报修设备对象
+            instance_1.status = need_repair  # 设置设备表中的设备状态为报修
+            instance_1.save()
 
         instance.save()
         return instance
@@ -41,4 +41,10 @@ class EquipmentMaintenanceSerializer(serializers.ModelSerializer):
         instance.responsible_person = validated_data.get('responsible_person', instance.responsible_person)
         instance.fault_description = validated_data.get('fault_description', instance.fault_description)
         instance.save()
+        print(instance.maintain_result)
+        if instance.maintain_result == str(finish_maintenance):  # 如果维护结果为维护已完成
+            equipment_obj = Equipment.objects.filter(aid=instance.equipment_id).first()  # 找到维护的设备对象
+            equipment_obj.status = on_line  # 将设备状态改为在线
+            equipment_obj.save()
         return instance
+

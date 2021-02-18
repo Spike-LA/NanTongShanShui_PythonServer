@@ -8,6 +8,8 @@ Delete = -1  # 逻辑删除
 on_line = 0  # 在线(在用户厂里）
 stop_run = 1  # 停运(在公司厂里）
 scraped = 2  # 报废
+need_repair = 3  # 报修
+maintenance = 4  # 维护
 
 # 传感器与设备关系
 working = 1  # 传感器在设备工作
@@ -32,8 +34,9 @@ activated = 1  # 账户已激活
 none_efficacy = 0  # 账户已失效
 
 # 传感器状态
-is_using = 1  # 可以使用
-not_using = -1  # 停止使用
+is_using = 1  # 正在使用
+sensor_scrap = 0  # 已报废
+un_using = 2  # 未使用
 
 # 水质提醒
 wait_deal = 1  # 未处理
@@ -42,3 +45,32 @@ is_dealt = 0  # 已处理
 # 用户状态
 not_Delete = 1  # 未删除
 Delete = -1  # 逻辑删除
+
+# 用户登录状态
+on = 1  # 已登录
+out = -1  # 未登录
+
+# 客户、联系人状态
+on_using = 1  # 未删除
+not_using = -1  # 逻辑删除
+
+# 发送状态
+success = 1  # 发送成功
+fail = 0  # 发送失败
+
+# 执行状态
+do_success = 1  # 执行成功
+do_fail = 0  # 执行失败
+
+#泵的状态
+not_equipped = 0  # 刚创建未装配
+equipped = 1 # 已装配
+is_delete = 2 # 已报废
+
+#泵的自动操作状态
+opration_not_finish = 0  # 操作未执行完成
+opration_finish = 1  # 操作已执行完成
+
+#泵的自动操作类型
+time_operation = 0 # 定时操作
+regular_operation = 1 # 周期性操作

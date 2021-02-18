@@ -16,16 +16,21 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from App import views
+from App.views.auto_operation import AutoOperationViewSet
 from App.views.client import ClientViewSet
 from App.views.contact_people import ContactPeopleViewSet
 from App.views.equipment import EquipmentViewSet
 from App.views.equipment_allocation import EquipmentAllocationViewSet
 from App.views.equipment_calibration import EquipmentCalibrationViewSet
 from App.views.equipment_maintenance import EquipmentMaintenanceViewSet
+from App.views.equipment_operation_log import EquipmentOperationLogViewSet
 from App.views.equipmentscrap import EquipmentScrapViewSet
 from App.views.main_engine import MainEngineViewSet
 from App.views.power import PowerViewSet
 from App.views.power_relation import PowerRelationViewSet
+from App.views.pump import PumpViewSet
+from App.views.pump_permission import PumpPermissionViewSet
+from App.views.real_time_data import RealTimeDataViewSet
 
 from App.views.role import RoleViewSet
 from App.views.sensor import SensorViewSet
@@ -52,6 +57,11 @@ router.register('user', UserViewSet)
 router.register('equipment_calibration', EquipmentCalibrationViewSet)
 router.register('water_quality_notice', WaterQualityNoticeViewSet)
 router.register('equipment_scrap', EquipmentScrapViewSet)
+router.register('pump',PumpViewSet)
+router.register('pump_permission',PumpPermissionViewSet)
+router.register('real_time_data', RealTimeDataViewSet)
+router.register('auto_operation', AutoOperationViewSet)
+router.register('equipment_operation_log', EquipmentOperationLogViewSet)
 
 app_name = "App"
 
@@ -72,6 +82,7 @@ urlpatterns = [
     path('main_engine_code_and_name/', views.mainenginecodeandname, name='main_engine_code_and_name'),
     path('equipment_detail/', views.equipmentdetail, name='equipment_detail'),
     path('login_in/', views.loginin, name='login_in'),
+    path('logout/', views.logout, name='logout'),
     path('verify/', views.verify, name='verify'),
     path('sensor_calibration_retrieve/', views.sensorcalibrationretrieve, name='sensor_calibration_retrieve'),
     path('role_power/', views.rolepowers, name='role_power'),
@@ -79,5 +90,10 @@ urlpatterns = [
     path('equipment_scrap_retrieve/', views.equipmentscrapretrieve, name='equipment_scrap_retrieve'),
     path('equipment_configuration_retrieve/', views.equipmentconfigurationretrieve, name='equipment_configuration_retrieve'),
     path('equipment_allocation_retrieve/', views.equipmentallocationretrieve, name='equipment_allocation_retrieve'),
+    path('equipment_allocate_factory/', views.equipmentallocatefactory, name='equipment_allocate_factory'),
+    path('websocket_relation/',views.websocketrelation, name='websocket_relation'),
+    path('export_excel/',views.exportexcel, name='export_excel'),
+    path('get_equipped_pump/', views.getequippedpump1, name='get_equipped_pump'),
+    path('pump_and_user/', views.pumpanduser1, name='viewspumpanduser')
     # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
 ]

@@ -1,4 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
 
 from App.filters.main_engine_filter import MainEngineFilter
@@ -11,7 +12,7 @@ from App.views_constant import Delete
 
 class MainEngineViewSet(ModelViewSet):
     serializer_class = MainEngineSerializer
-    queryset = MainEngine.objects.exclude(status=-1)
+    queryset = MainEngine.objects.exclude(status=-1).order_by('-begin_time')
 
     # 用于查询集过滤的过滤器后端类
     filter_backends = (DjangoFilterBackend,)

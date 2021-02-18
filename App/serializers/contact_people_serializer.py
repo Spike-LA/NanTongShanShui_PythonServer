@@ -3,6 +3,7 @@ import uuid
 from rest_framework import serializers
 
 from App.models import ContactPeople
+from App.views_constant import on_using
 
 
 class ContactPeopleSerializer(serializers.ModelSerializer):
@@ -22,6 +23,7 @@ class ContactPeopleSerializer(serializers.ModelSerializer):
         instance.contact_tel = validated_data.get('contact_tel')
         instance.client_id = validated_data.get('client_id')
         instance.remark = validated_data.get('remark')
+        instance.status = on_using
 
         instance.save()
 

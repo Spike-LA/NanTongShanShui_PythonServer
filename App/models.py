@@ -19,6 +19,7 @@ class Client(models.Model):
     unit_fax = models.CharField(max_length=50, blank=True, null=True)
     note = models.CharField(max_length=255, blank=True, null=True)
     region = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -32,6 +33,7 @@ class ContactPeople(models.Model):
     contact_position = models.CharField(max_length=50)
     contact_tel = models.CharField(max_length=50)
     remark = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -48,7 +50,7 @@ class Equipment(models.Model):
     equip_person = models.CharField(max_length=50)
     create_time = models.DateTimeField(auto_now_add=True)
     alert_time = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=50)
+    status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -57,25 +59,17 @@ class Equipment(models.Model):
 
 class EquipmentAllocation(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    host_number = models.CharField(max_length=50)
-    host_name = models.CharField(max_length=50)
+    engine_id = models.CharField(max_length=50)
     equipment_id = models.CharField(max_length=255)
     applicant = models.CharField(max_length=50, blank=True, null=True)
-    applicant_time = models.DateField(blank=True, null=True)
-    client_id = models.CharField(max_length=255, blank=True, null=True)
-    allocation_reason = models.CharField(max_length=50, blank=True, null=True)
-    transport_unit = models.CharField(max_length=50, blank=True, null=True)
-    agent = models.CharField(max_length=50, blank=True, null=True)
-    agent_tel = models.CharField(max_length=50, blank=True, null=True)
-    opinion = models.CharField(max_length=50, blank=True, null=True)
-    sign = models.CharField(max_length=50, blank=True, null=True)
-    approval_time = models.DateField(blank=True, null=True)
-    remark = models.CharField(max_length=50, blank=True, null=True)
-    equipment_remark = models.CharField(max_length=255, blank=True, null=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
+    applicant_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    client_id = models.CharField(max_length=255, blank=True, null=True)
     transfer_unit = models.CharField(max_length=50, blank=True, null=True)
     transfer_unit_ads = models.CharField(max_length=50, blank=True, null=True)
     transfer_unit_tel = models.CharField(max_length=50, blank=True, null=True)
+    allocation_reason = models.CharField(max_length=50, blank=True, null=True)
+    remark = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -110,21 +104,13 @@ class EquipmentMaintenance(models.Model):
 
 class EquipmentScrap(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
-    host_number = models.CharField(max_length=50)
-    host_name = models.CharField(max_length=50)
+    engine_id = models.CharField(max_length=255)
     equipment_id = models.CharField(max_length=255)
-    equipment_remark = models.CharField(max_length=255, blank=True, null=True)
     applicant = models.CharField(max_length=50, blank=True, null=True)
-    applicant_time = models.DateField(blank=True, null=True)
+    applicant_time = models.DateField(blank=True, null=True, auto_now_add=True)
     applicant_tel = models.CharField(max_length=50, blank=True, null=True)
-    applicant_department = models.CharField(max_length=50, blank=True, null=True)
     scrapping_reasons = models.CharField(max_length=50, blank=True, null=True)
-    opinion = models.CharField(max_length=50, blank=True, null=True)
-    sign = models.CharField(max_length=50, blank=True, null=True)
-    approval_time = models.DateField(blank=True, null=True)
     remark = models.CharField(max_length=255, blank=True, null=True)
-    store = models.CharField(max_length=50, blank=True, null=True)
-    location = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -154,7 +140,8 @@ class Sensor(models.Model):
     note = models.CharField(max_length=255, blank=True, null=True)
     default_compensation = models.CharField(max_length=50, blank=True, null=True)
     theoretical_value = models.CharField(max_length=50, blank=True, null=True)
-    sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
+    high_sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
+    down_sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
 
@@ -180,9 +167,11 @@ class SensorModel(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     sensor_type_id = models.CharField(max_length=255)
     sensor_model = models.CharField(max_length=50)
-    sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
+    high_sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
+    down_sensor_threshold = models.CharField(max_length=50, blank=True, null=True)
     notice_content = models.CharField(max_length=50, blank=True, null=True)
-    create_time = models.DateField()
+    create_time = models.DateField(auto_now_add=True)
+    states = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -192,7 +181,9 @@ class SensorModel(models.Model):
 class SensorType(models.Model):
     aid = models.CharField(primary_key=True, max_length=255)
     type_name = models.CharField(max_length=50)
-    create_time = models.DateField()
+    unit = models.CharField(max_length=50, blank=True, null=True)
+    create_time = models.DateField(auto_now_add=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -224,6 +215,8 @@ class User(models.Model):
     add_by = models.CharField(max_length=50, blank=True, null=True)
     mod_time = models.DateField(auto_now=True, blank=True, null=True)
     mod_by = models.CharField(max_length=50, blank=True, null=True)
+    client_id = models.CharField(max_length=255, blank=True, null=True)
+    login_status = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -257,4 +250,89 @@ class PowerRelation(models.Model):
     class Meta:
         managed = False
         db_table = 'power_relation'
+
+
+class WebsocketRelation(models.Model):
+    wid = models.AutoField(primary_key=True)
+    websocket_id = models.CharField(max_length=255, blank=True, null=True)
+    object_id = models.CharField(max_length=255, blank=True, null=True)
+    distinguish_code = models.CharField(max_length=255, blank=True, null=True)
+    equipment_code = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'websocket_relation'
+
+
+class EquipmentOperationLog(models.Model):
+    command_id = models.CharField(primary_key=True, max_length=255)
+    operation_time = models.DateTimeField(blank=True, null=True)
+    operation_person_id = models.CharField(max_length=255, blank=True, null=True)
+    operation_equipment_code = models.CharField(max_length=255, blank=True, null=True)
+    operation_pump_code = models.CharField(max_length=255, blank=True, null=True)
+    open_time = models.CharField(max_length=255, blank=True, null=True)
+    send_status = models.CharField(max_length=50, blank=True, null=True)
+    operate_status = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'equipment_operation_log'
+
+
+class Pump(models.Model):
+    pump_id = models.CharField(primary_key=True, max_length=255)
+    pump_name = models.CharField(max_length=50, blank=True, null=True)
+    pump_code = models.CharField(max_length=50, blank=True, null=True)
+    equipment_code = models.CharField(max_length=50, blank=True, null=True)
+    fluid_flow = models.CharField(max_length=50, blank=True, null=True)
+    create_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    create_by = models.CharField(max_length=255, blank=True, null=True)
+    mod_time = models.DateField(blank=True, null=True, auto_now=True)
+    mod_by = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+    note = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'pump'
+
+class PumpPermission(models.Model):
+    permission_id = models.CharField(primary_key=True, max_length=255)
+    user_id = models.CharField(max_length=255, blank=True, null=True)
+    pump_id = models.CharField(max_length=255, blank=True, null=True)
+    create_time = models.DateField(blank=True, null=True, auto_now_add=True)
+    create_by = models.CharField(max_length=50, blank=True, null=True)
+    mod_time = models.DateField(blank=True, null=True, auto_now=True)
+    mod_by = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'pump_permission'
+
+class RealTimeData(models.Model):
+    uuid = models.CharField(primary_key=True, max_length=255)
+    equipment_code = models.CharField(max_length=50, blank=True, null=True)
+    mearsure_type = models.CharField(max_length=50, blank=True, null=True)
+    mearsurement = models.CharField(max_length=50, blank=True, null=True)
+    update_time = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'real_time_data'
+
+class AutoOperationInfo(models.Model):
+    uuid = models.CharField(primary_key=True, max_length=255)
+    pump_code = models.CharField(max_length=50, blank=True, null=True)
+    operation_type = models.CharField(max_length=50, blank=True, null=True)
+    operation_time = models.CharField(max_length=50, blank=True, null=True)
+    begin_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
+    period = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=50, blank=True, null=True)
+    create_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+    create_by = models.CharField(max_length=50, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'auto_operation_info'
 

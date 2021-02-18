@@ -22,7 +22,12 @@ class MainEngineSerializer(serializers.ModelSerializer):
         instance = MainEngine()
         instance.aid = uuid.uuid4().hex
         now = datetime.now()  # 时间模块  现在时间
-        instance.engine_code = now.strftime("%Y%m%d") + str(random.randint(100, 999))  # 导入事件模块和随机模块生成编号
+        engine_query = MainEngine.objects.all()
+        engine_aid_list = []
+        for engine_obj in engine_query:
+            engine_aid_list.append(engine_obj.aid)
+        count = len(engine_aid_list)
+        instance.engine_code = now.strftime("%Y%m%d") + str(count)  # 创建唯一的主机编号
         instance.engine_name = validated_data.get('engine_name')
         # 前端传字符串时，将其转化为datetime.date格式的方法
         # begin_time = validated_data.get('begin_time')
