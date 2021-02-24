@@ -1,6 +1,8 @@
 import json
 import datetime
+from io import BytesIO
 
+import xlwt
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -31,7 +33,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
         status = request.GET.get('status')
-        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.sensor_threshold,sensor.notice_content," \
+        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.high_sensor_threshold,sensor.down_sensor_threshold,sensor.notice_content," \
               "sensor.default_compensation,sensor.theoretical_value,type_name,sensor_model,note,sensor_code," \
               "sensor.`status` FROM sensor_type INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id " \
               "INNER JOIN sensor ON sensor_model.aid=sensor.sensor_model_id) AS a"
@@ -1192,6 +1194,7 @@ def getequippedpump1(request):
                 pump_object_list = []
                 for object in pump_query:
                     dic = {}
+                    dic['pump_id'] = object.pump_id
                     dic['pump_name'] = object.pump_name
                     dic['pump_code'] = object.pump_code
                     dic['fluid_flow'] = object.fluid_flow
@@ -1278,3 +1281,154 @@ def pumpanduser1(request):
             "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
         }
     return JsonResponse(data=data)  # 对象
+
+# 将时序数据库中的数据以Excel的形式导出
+@csrf_exempt
+def exportexcel(request):
+    if request.method == 'POST':
+        deviceNum = json.loads(request.body.decode().replace("'", "\"")).get('deviceNum')
+        begin_time_first = json.loads(request.body.decode().replace("'", "\"")).get('begin_time')
+        end_time_first = json.loads(request.body.decode().replace("'", "\"")).get('end_time')
+        sensor_type = json.loads(request.body.decode().replace("'", "\"")).get('sensor_type')
+
+        time_begin = "T00:00:00.000000Z"
+        time_end = "T23:59:59.000000Z"
+        today = datetime.date.today()
+        oneday = datetime.timedelta(days=1)
+        tomorrow = today + oneday
+        if not begin_time_first:
+            if not end_time_first:
+                begin_time_first = str(today)
+                end_time_first = str(tomorrow)
+                # begin_time_first = '2020-10-10'
+                # end_time_first = '2020-10-11'
+        begin_time = begin_time_first + time_begin
+        end_time = end_time_first + time_end
+
+        sql = "select * from b where deviceNum='%s' and time >= '%s' and time <= '%s'" % (
+            deviceNum, begin_time, end_time)
+        data = query(sql)
+        result_list = []
+        for obj in data:
+            result_list = obj
+        sum = len(result_list)
+        # excel导出0.1版本
+        # row0 = ["检测时间", "电导率传感器", "ORP传感器", "PH传感器", "温度传感器"]
+        row1 = ["检测时间", "电导率传感器"]
+        row2 = ["检测时间", "ORP传感器"]
+        row3 = ["检测时间", "PH传感器"]
+        row4 = ["检测时间", "温度传感器"]
+        workbook = xlwt.Workbook(encoding='utf-8')  # 创建工作簿
+
+        worksheet = workbook.add_sheet('Sheet1')  # 添加名为Sheet1的工作表
+
+        worksheet.col(0).width = 256 * 20  # Set the column width
+
+        worksheet.col(1).width = 256 * 20  # Set the column width
+
+        worksheet.write(0, 0, "设备编号")
+
+        worksheet.write(1, 0, deviceNum)
+
+        if sensor_type == 'conduct':
+            for i in range(0, len(row1)):  # 生成第一行
+                worksheet.write(2, i, row1[i])
+        elif sensor_type == 'orp':
+            for i in range(0, len(row2)):  # 生成第一行
+                worksheet.write(2, i, row2[i])
+        elif sensor_type == 'ph':
+            for i in range(0, len(row3)):  # 生成第一行
+                worksheet.write(2, i, row3[i])
+        elif sensor_type == 'temper':
+            for i in range(0, len(row4)):  # 生成第一行
+                worksheet.write(2, i, row4[i])
+        else:
+            pass
+        num = 0
+        while num < sum:  # 生产数据行
+            for obj in result_list:
+                sensor_names = {'time', sensor_type}
+                p2 = {key: value for key, value in obj.items() if key in sensor_names}
+                res = [obj[key] for key in p2]
+                for i in range(0, len(res)):
+                    worksheet.write(num + 3, i, res[i])
+                num += 1
+        sio = BytesIO()
+        workbook.save(sio)
+        sio.seek(0)
+        return sio.getvalue()
+
+
+def getoperationlog(request):
+    if request.method == 'GET':
+        pump_code = request.GET.get('pump_code')
+        equipment_code = request.GET.get('equipment_code')
+        page = request.GET.get("currentPage")  # 第几页
+        size = request.GET.get("size")  # 每页多少
+        if not page:
+            page = 1
+            size = 5
+        if not size:
+            page = 1
+            size = 5
+        operation_time_gte_first = request.GET.get('operation_time_gte')
+        operation_time_lte_first = request.GET.get('operation_time_lte')
+        time_second_begin = 'T00:00:00'
+        time_second_end = 'T23:59:59'
+        if operation_time_gte_first:
+            operation_time_gte = operation_time_gte_first + time_second_begin
+        if operation_time_lte_first:
+            operation_time_lte = operation_time_lte_first + time_second_end
+
+        sql = "SELECT * FROM (SELECT dosage,operation_pump_code, open_time, operation_equipment_code, operation_person_id, operation_time ,send_status, operate_status,  user.`name` as 'user_name', pump.pump_name " \
+              "FROM equipment_operation_log " \
+              "INNER JOIN `user` ON operation_person_id=user.aid " \
+              "INNER JOIN pump ON pump_code = operation_pump_code) AS a "
+        a = 'operation_time>=%s'
+        b = 'operation_time<=%s'
+        c = 'operation_pump_code=%s'
+        d = 'operation_equipment_code=%s'
+
+        child_sql = []
+        child_params = []
+        if operation_time_gte_first:
+            child_sql.append(a)
+            child_params.append(operation_time_gte)
+        if operation_time_lte_first:
+            child_sql.append(b)
+            child_params.append(operation_time_lte)
+        if pump_code:
+            child_sql.append(c)
+            child_params.append(pump_code)
+        if equipment_code:
+            child_sql.append(d)
+            child_params.append(equipment_code)
+
+        length = len(child_sql)
+        if length == 0:
+            pass
+        elif length == 1:
+            sql = sql+' where '+child_sql[0]
+        else:
+            n = 1
+            for i in child_sql:
+                if n == 1:
+                    sql = sql+' where '+i
+                    n += 1
+                else:
+                    sql = sql+' and '+i
+
+        sql = sql + ' order by operation_time desc'
+
+        if len(child_params) == 0:
+            results = maintenance(sql)
+        else:
+            results = maintenances(sql, child_params)
+        num = len(results)  # 共计几个对象
+        paginator = Paginator(results, size)  # 转为限制行数的paginator对象
+        queryset = paginator.page(page)  # 根据前端的页数选择对应的返回结果
+        data = {
+            "count": num,
+            "data": list(queryset)  # JsonResponse消除返回的结果中带的反斜杠
+        }
+        return JsonResponse(data=data)  # 对象

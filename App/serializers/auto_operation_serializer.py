@@ -20,6 +20,8 @@ class AutoOperationSerializer(serializers.ModelSerializer):
         instance.operation_time = validated_data.get('operation_time')
         instance.operation_type = validated_data.get('operation_type')
         instance.begin_time = validated_data.get('begin_time')
+        instance.dosage = validated_data.get('dosage')
+        instance.next_run_time = validated_data.get('begin_time') # 第一次的运行时间和begin_time一致
         if instance.operation_type == time_operation:
             instance.end_time = ''
             instance.period = ''

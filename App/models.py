@@ -270,6 +270,7 @@ class EquipmentOperationLog(models.Model):
     operation_person_id = models.CharField(max_length=255, blank=True, null=True)
     operation_equipment_code = models.CharField(max_length=255, blank=True, null=True)
     operation_pump_code = models.CharField(max_length=255, blank=True, null=True)
+    dosage = models.CharField(max_length=255, blank=True, null=True)
     open_time = models.CharField(max_length=255, blank=True, null=True)
     send_status = models.CharField(max_length=50, blank=True, null=True)
     operate_status = models.CharField(max_length=50, blank=True, null=True)
@@ -313,7 +314,7 @@ class RealTimeData(models.Model):
     uuid = models.CharField(primary_key=True, max_length=255)
     equipment_code = models.CharField(max_length=50, blank=True, null=True)
     mearsure_type = models.CharField(max_length=50, blank=True, null=True)
-    mearsurement = models.CharField(max_length=50, blank=True, null=True)
+    measurement = models.CharField(max_length=50, blank=True, null=True)
     update_time = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -325,9 +326,11 @@ class AutoOperationInfo(models.Model):
     pump_code = models.CharField(max_length=50, blank=True, null=True)
     operation_type = models.CharField(max_length=50, blank=True, null=True)
     operation_time = models.CharField(max_length=50, blank=True, null=True)
+    dosage = models.CharField(max_length=50, blank=True, null=True)
     begin_time = models.DateTimeField(blank=True, null=True)
     end_time = models.DateTimeField(blank=True, null=True)
     period = models.CharField(max_length=50, blank=True, null=True)
+    next_run_time = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
     create_time = models.DateTimeField(blank=True, null=True, auto_now_add=True)
     create_by = models.CharField(max_length=50, blank=True, null=True)
