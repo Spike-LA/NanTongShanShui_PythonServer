@@ -148,8 +148,10 @@ REST_FRAMEWORK = {
  'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',)
 }
 
+# 第一个定时任务（水质提醒）和第三个定时任务（泵的周期性控制）需要到学校联合调试
 CRONJOBS = [
-    ('*/5 * * * *','App.task.task'),
-    ('*/1 * * * *','App.task2.task')
+    # ('*/1 * * * *','App.task.task'),
+    ('*/1 * * * *','App.task2.task'),
+    # ('*/1 * * * *','App.auto_operation_task.auto_operation'),
 ]
 

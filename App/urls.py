@@ -94,6 +94,7 @@ urlpatterns = [
     path('websocket_relation/',views.websocketrelation, name='websocket_relation'),
     path('export_excel/',views.exportexcel, name='export_excel'),
     path('get_equipped_pump/', views.getequippedpump1, name='get_equipped_pump'),
-    path('pump_and_user/', views.pumpanduser1, name='viewspumpanduser')
-    # path传参路由可以直接接着写 /？xxx 而不用在urls中添加<str:yyy>，views中直接request.GET.get("yyy")
+    path('pump_and_user/', views.pumpanduser1, name='viewspumpanduser'),
+    path('export_excel/', views.exportexcel, name='export_excel'),
+    path('get_operation_log/',views.getoperationlog,name='get_operation_log'),
 ]
