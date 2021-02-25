@@ -4,7 +4,7 @@ from io import BytesIO
 
 import xlwt
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from influxdb_metrics.utils import query
 
@@ -1285,11 +1285,11 @@ def pumpanduser1(request):
 # 将时序数据库中的数据以Excel的形式导出
 @csrf_exempt
 def exportexcel(request):
-    if request.method == 'POST':
-        deviceNum = json.loads(request.body.decode().replace("'", "\"")).get('deviceNum')
-        begin_time_first = json.loads(request.body.decode().replace("'", "\"")).get('begin_time')
-        end_time_first = json.loads(request.body.decode().replace("'", "\"")).get('end_time')
-        sensor_type = json.loads(request.body.decode().replace("'", "\"")).get('sensor_type')
+    if request.method == 'GET':
+        deviceNum = request.GET.get('deviceNum')
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        sensor_type = request.GET.get('sensor_type')
 
         time_begin = "T00:00:00.000000Z"
         time_end = "T23:59:59.000000Z"
@@ -1353,11 +1353,18 @@ def exportexcel(request):
                 for i in range(0, len(res)):
                     worksheet.write(num + 3, i, res[i])
                 num += 1
-        sio = BytesIO()
-        workbook.save(sio)
-        sio.seek(0)
-        return sio.getvalue()
 
+        # 创建操作二进制数据的对象
+        sio = BytesIO()
+        # 将excel数据写入到内存中
+        workbook.save(sio)
+        # 设置文件读取的偏移量，0表示从头读起
+        sio.seek(0)
+        # 设置HttpResponse的类型
+        response = HttpResponse(sio.getvalue(), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=sensor_%s.xls' % sensor_type
+
+        return response
 
 def getoperationlog(request):
     if request.method == 'GET':

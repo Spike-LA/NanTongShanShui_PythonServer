@@ -92,6 +92,7 @@ urlpatterns = [
     path('equipment_allocation_retrieve/', views.equipmentallocationretrieve, name='equipment_allocation_retrieve'),
     path('equipment_allocate_factory/', views.equipmentallocatefactory, name='equipment_allocate_factory'),
     path('websocket_relation/',views.websocketrelation, name='websocket_relation'),
+    path('export_excel/',views.exportexcel, name='export_excel'),
     path('get_equipped_pump/', views.getequippedpump1, name='get_equipped_pump'),
     path('pump_and_user/', views.pumpanduser1, name='viewspumpanduser'),
     path('export_excel/', views.exportexcel, name='export_excel'),
