@@ -1,12 +1,13 @@
 import json
 import datetime
+from io import BytesIO
 
 import xlwt
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from influxdb_metrics.utils import query
-
+from django.http import HttpResponse
 from App.functions.condition_search import maintenances, maintenance
 from App.models import EquipmentMaintenance, ContactPeople, SensorType, SensorModel, Sensor, Equipment, \
     EquipmentAndSensor, MainEngine, User, Role, PowerRelation, Power, EquipmentAllocation, WebsocketRelation, Pump
@@ -32,7 +33,7 @@ def type_model(request):  # 设备类型与设备型号进行连表搜索，显�
         sensor_model = request.GET.get("sensor_model")
         sensor_code = request.GET.get('sensor_code')
         status = request.GET.get('status')
-        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.sensor_threshold,sensor.notice_content," \
+        sql = "SELECT * FROM (SELECT DISTINCT sensor.aid,sensor.high_sensor_threshold,sensor.down_sensor_threshold,sensor.notice_content," \
               "sensor.default_compensation,sensor.theoretical_value,type_name,sensor_model,note,sensor_code," \
               "sensor.`status` FROM sensor_type INNER JOIN sensor_model ON sensor_type.aid=sensor_model.sensor_type_id " \
               "INNER JOIN sensor ON sensor_model.aid=sensor.sensor_model_id) AS a"
@@ -1295,14 +1296,12 @@ def pumpanduser1(request):
 
 
 # 将时序数据库中的数据以Excel的形式导出
-@csrf_exempt
 def exportexcel(request):
-    if request.method == 'POST':
-        deviceNum = json.loads(request.body.decode().replace("'", "\"")).get('deviceNum')
-        begin_time_first = json.loads(request.body.decode().replace("'", "\"")).get('begin_time')
-        end_time_first = json.loads(request.body.decode().replace("'", "\"")).get('end_time')
-        sensor_type = json.loads(request.body.decode().replace("'", "\"")).get('sensor_type')
-        url = json.loads(request.body.decode().replace("'", "\"")).get('url')
+    if request.method == 'GET':
+        deviceNum = request.GET.get('deviceNum')
+        begin_time_first = request.GET.get('begin_time')
+        end_time_first = request.GET.get('end_time')
+        sensor_type = request.GET.get('sensor_type')
 
         time_begin = "T00:00:00.000000Z"
         time_end = "T23:59:59.000000Z"
@@ -1366,8 +1365,15 @@ def exportexcel(request):
                 for i in range(0, len(res)):
                     worksheet.write(num + 3, i, res[i])
                 num += 1
-        workbook.save(url + '/sensor_%s.xls' % (sensor_type))  # 本机的桌面'C:/Users/kaiss/Desktop/sensor_%s.xls'
-        message = {
-            'msg': '导出成功'
-        }
-        return JsonResponse(data=message, safe=False)
+
+        # 创建操作二进制数据的对象
+        sio = BytesIO()
+        # 将excel数据写入到内存中
+        workbook.save(sio)
+        # 设置文件读取的偏移量，0表示从头读起
+        sio.seek(0)
+        # 设置HttpResponse的类型
+        response = HttpResponse(sio.getvalue(), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=sensor_%s.xls' % sensor_type
+
+        return response
